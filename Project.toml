@@ -1,0 +1,13 @@
+name = "GPLVM"
+uuid = "d42837a9-6870-44f6-82a5-99dcce1f8faa"
+authors = ["Nikos Gianniotis <ngiann@gmail.com> and contributors"]
+version = "1.0.0-DEV"
+
+[compat]
+julia = "1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
