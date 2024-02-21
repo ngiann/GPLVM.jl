@@ -1,11 +1,11 @@
-function gplvmvar_pos(X; iterations = 1, H = 10, seed = 1, Q = 2, JITTER = 1e-6, η = 1e-2)
+function gplvmvar_pos(X; iterations = 1, H1 = 10, H2 = H1, seed = 1, Q = 2, JITTER = 1e-6, η = 1e-2)
 
     rg = MersenneTwister(seed)
 
     D, N = size(X)
 
-    net = ThreeLayerNetwork(in = Q, H1=10, H2=H, out=D)
-
+    net = ThreeLayerNetwork(in = Q, H1 = H1, H2 = H2, out=D)
+    
     nwts = numweights(net)
 
     @printf("Running gplvmvar_pos.\n")
@@ -18,13 +18,13 @@ function gplvmvar_pos(X; iterations = 1, H = 10, seed = 1, Q = 2, JITTER = 1e-6,
     function unpack(p)
     #-------------------------------------------------
 
-        @assert(length(p) == Q*N + 2 + 1 + nwts + N + 2)
+        @assert(length(p) == Q*N + 1 + 1 + nwts + N + 2)
 
         local MARK = 0
 
         local Z = reshape(p[MARK+1:MARK+Q*N], Q, N); MARK += Q*N
 
-        local θ = exp.(p[MARK+1:MARK+2]); MARK += 2
+        local θ = exp(p[MARK+1]); MARK += 1
 
         local β = exp(p[MARK+1]); MARK += 1
 
@@ -40,7 +40,7 @@ function gplvmvar_pos(X; iterations = 1, H = 10, seed = 1, Q = 2, JITTER = 1e-6,
 
         local μ = net(w, Z)
         
-        return Z, θ, β, μ, Λroot, w, α, b
+        return Z, [one(eltype(p));θ], β, μ, Λroot, w, α, b
 
     end
 
@@ -48,13 +48,14 @@ function gplvmvar_pos(X; iterations = 1, H = 10, seed = 1, Q = 2, JITTER = 1e-6,
     
     # initialise parameters randomly
 
-    p0 = [randn(rg, Q*N)*0.2; randn(rg,3)*1; 0.2*randn(rg, nwts); randn(rg, N); randn(rg, 2)]
+    p0 = [randn(rg, Q*N)*0.2; randn(rg,2)*1; 0.2*randn(rg, nwts); randn(rg, N); randn(rg, 2)]
 
 
-    let
-        @show marginallikelihood_verify_1(X, unpack(p0)...; JITTER = JITTER, η = η)
-        @show          marginallikelihood(X, unpack(p0)...; JITTER = JITTER, η = η)
-    end
+    # let
+    #     aaa = marginallikelihood_verify_1(X, unpack(p0)...; JITTER = JITTER, η = η)
+    #     bbb =          marginallikelihood(X, unpack(p0)...; JITTER = JITTER, η = η)
+    #     @show aaa, bbb, aaa-bbb
+    # end
 
 
     #-----------------------------------------------------------------
@@ -86,25 +87,33 @@ function gplvmvar_pos(X; iterations = 1, H = 10, seed = 1, Q = 2, JITTER = 1e-6,
 
     results = optimize(Optim.only_fg!(fg!), p0, ConjugateGradient(), opt) # alphaguess = InitialQuadratic(α0=1e-8)
 
-    Zopt, θopt, βopt, μopt, Λrootopt, _wopt, αopt, bopt = unpack(results.minimizer)
+    Zopt, θopt, _βopt, μopt, Λrootopt, _wopt, αopt, bopt = unpack(results.minimizer)
    
 
     #-----------------------------------------------------------------
     # Return prediction function and optimised latent coordinates
     #-----------------------------------------------------------------
 
-    pred = let
+    sampleprediction = let
 
-        local D² = pairwise(SqEuclidean(), Zopt)
+        local D²    = pairwise(SqEuclidean(), Zopt)
 
         local Kopt  = Symmetric(covariance(D², θopt) + JITTER*I)
 
         local Σopt  = woodbury(;K = Kopt, Λ½ = Λrootopt) + JITTER*I
 
-        pred(ztest) = predict(ztest, Zopt, θopt, μopt, Σopt, Kopt, 0.0; JITTER = JITTER)
+        samplelatent(ztest) = predict(ztest, Zopt, θopt, μopt, Σopt, Kopt; JITTER = JITTER)
+
+        function sample(ztest)
+
+            local aux = samplelatent(ztest)
+
+            () -> exp.(αopt * aux() .+ bopt)
+
+        end
 
     end
 
-    return Zopt, pred
+    return Zopt, sampleprediction
     
 end
