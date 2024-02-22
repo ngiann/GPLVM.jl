@@ -44,22 +44,26 @@ function infertestlatent(X₊; μ = μ, Σ = Σ, K = K, η = η, Λroot = Λroot
         @assert(size(m, 1) == D); @assert(size(m, 2) == N₊)
 
         # calculate covariance of "prior" of test latent function values
-        
-        # local C = K₊₊ - K₊*inv(K+ inv(Λroot.^2))*K₊'; @assert(size(C, 1) == N₊); @assert(size(C, 2) == N₊);
-
         local C = K₊₊ - K₊*aux_invert_K_plus_Λ⁻¹(K=K, Λroot=Λroot)*K₊'; @assert(size(C, 1) == N₊); @assert(size(C, 2) == N₊);
 
 
         # calculate posterior covariance of test latent function values
         local A = aux_invert_K⁻¹_plus_Λ(K=Symmetric(C+JITTER*I) , Λroot = Lroot)
 
-
         # log-prior contribution
         local ℓ = zero(eltype(Z₊))
 
-        for d in 1:D
-            ℓ += logpdf(MvNormal(ν[d,:], Symmetric(C)), m[d,:]) - 0.5*tr(C\A)
-        end
+        local Cᵤ = cholesky(Symmetric(C)).L
+        
+        ℓ += -0.5*D*N₊*log(2π) - 0.5*sum(abs2.(Cᵤ\(ν-m)')) - D*0.5*tr(C\A) - D*sum(log.(diag(Cᵤ)))
+
+        # code below implements line above - keep for numerical verification
+        # let
+        #     ℓ1 = 0
+        #     for d in 1:D
+        #         ℓ1 += logpdf(MvNormal(ν[d,:], Symmetric(C)), m[d,:]) - 0.5*tr(C\A)
+        #     end
+        # end
 
         # log-likelihood contribution
 
