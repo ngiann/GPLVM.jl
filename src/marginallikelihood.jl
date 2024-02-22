@@ -8,7 +8,7 @@ function marginallikelihood(X, Z, θ, β, μ, Λroot, w, α, b; JITTER = JITTER,
 
     local K  = Symmetric(covariance(D², θ) + JITTER*I)
 
-    local Σ  = woodbury(;K = K, Λ½ = Λroot)+ JITTER*I
+    local Σ  = aux_invert_K⁻¹_plus_Λ(;K = K, Λroot = Λroot)+ JITTER*I
 
     local U = cholesky(K).L
     
@@ -17,7 +17,7 @@ function marginallikelihood(X, Z, θ, β, μ, Λroot, w, α, b; JITTER = JITTER,
 
     # log-prior contribution - implements equation eq:log_prior_gplvm_pos
 
-    ℓ += - 0.5*sum(abs2.(U\μ'))  + D*(-0.5*N*log(2π)-sum(log.(diag(U)))) - D*0.5*tr(U'\(U\Σ)) # tr(U'\(U\Σ)) equiv to tr(K\Σ)
+    ℓ += - 0.5*sum(abs2.(U\μ')) - 0.5*D*N*log(2π) - D*sum(log.(diag(U))) - 0.5*D*tr(U'\(U\Σ)) # tr(U'\(U\Σ)) equiv to tr(K\Σ)
 
 
     # log-likelihood contribution - implements eq:log_likel_gplvm_pos
@@ -33,7 +33,7 @@ function marginallikelihood(X, Z, θ, β, μ, Λroot, w, α, b; JITTER = JITTER,
 
     # entropy contribution with constants discarded - implements eq:entropy_gplvm_pos
 
-    ℓ += 0.5*D*logdet(Σ) 
+    ℓ += 0.5*D*logabsdet(Σ)[1] 
 
 
     # penalty on latent coordinates - not in latex
