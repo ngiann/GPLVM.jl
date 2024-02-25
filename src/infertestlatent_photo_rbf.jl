@@ -1,6 +1,6 @@
-infertestlatent_photo(U,B,S,R) = infertestlatent_photo(U, B, S; R...)
+inferlatent_photo(U,B,S,R) = inferlatent_photo(U, B, S; R...)
 
-function infertestlatent_photo(U, B, S; μ = μ, Σ = Σ, K = K, η = η, Λroot = Λroot, net = net, w = w,
+function inferlatent_photo(U, B, S; μ = μ, Σ = Σ, K = K, η = η, Λroot = Λroot, net = net, w = w,
                              α = α, b = b, β = β, Z = Z, θ = θ, JITTER = JITTER, rg = rg)
 
     # work out and verify dimensions
