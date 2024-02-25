@@ -1,3 +1,5 @@
+inferlatent(X₊, R) = infertestlatent(X₊; R...)
+
 function infertestlatent(X₊; μ = μ, Σ = Σ, K = K, η = η, Λroot = Λroot, net = net, w = w,
                              α = α, b = b, β = β, Z = Z, θ = θ, JITTER = JITTER, rg = rg)
 
