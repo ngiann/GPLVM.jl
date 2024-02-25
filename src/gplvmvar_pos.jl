@@ -6,7 +6,7 @@ function gplvmvar_pos(X; iterations = 1, H1 = 10, H2 = H1, seed = 1, Q = 2, JITT
 
     net = ThreeLayerNetwork(in = Q, H1 = H1, H2 = H2, out=D)
     
-    nwts = numweights(net)
+    nwts = ForwardNeuralNetworks.numweights(net)
 
     @printf("Running gplvmvar_pos.\n")
     @printf("There are %d number of data items\n", N)
@@ -94,6 +94,18 @@ function gplvmvar_pos(X; iterations = 1, H1 = 10, H2 = H1, seed = 1, Q = 2, JITT
     # Return prediction function and optimised latent coordinates
     #-----------------------------------------------------------------
 
+    return let 
+
+        local D²    = pairwise(SqEuclidean(), Zopt)
+
+        local Kopt  = Symmetric(covariance(D², θopt) + JITTER*I)
+
+        local Σopt  = aux_invert_K⁻¹_plus_Λ(;K = Kopt, Λroot = Λrootopt) + JITTER*I
+
+        (μ = μopt, Σ = Σopt, K = Kopt, η = η, Λroot = Λrootopt, net = net, w = wopt,
+         α = αopt, b = bopt, β = βopt, Z = Zopt, θ = θopt, JITTER = JITTER, rg = rg)
+    end
+
     infer = let
 
         local D²    = pairwise(SqEuclidean(), Zopt)
@@ -105,28 +117,33 @@ function gplvmvar_pos(X; iterations = 1, H1 = 10, H2 = H1, seed = 1, Q = 2, JITT
         infer(X₊) = infertestlatent(X₊; μ = μopt, Σ = Σopt, K = Kopt, η = η, Λroot = Λrootopt, net = net, w = wopt,
                              α = αopt, b = bopt, β = βopt, Z = Zopt, θ = θopt, JITTER = JITTER, rg = rg)
 
+        infer(U,B,S) = infertestlatent_photo(U,B,S; μ = μopt, Σ = Σopt, K = Kopt, η = η, Λroot = Λrootopt, net = net, w = wopt,
+                             α = αopt, b = bopt, β = βopt, Z = Zopt, θ = θopt, JITTER = JITTER, rg = rg)
+
+        infer
     end
-    # sampleprediction = let
+    
+    sampleprediction = let
 
-    #     local D²    = pairwise(SqEuclidean(), Zopt)
+        local D²    = pairwise(SqEuclidean(), Zopt)
 
-    #     local Kopt  = Symmetric(covariance(D², θopt) + JITTER*I)
+        local Kopt  = Symmetric(covariance(D², θopt) + JITTER*I)
 
-    #     local Σopt  = woodbury(;K = Kopt, Λroot = Λrootopt) + JITTER*I
+        local Σopt  = aux_invert_K⁻¹_plus_Λ(;K = Kopt, Λroot = Λrootopt) + JITTER*I
 
-    #     samplelatent(ztest) = predict(ztest, Zopt, θopt, μopt, Σopt, Kopt; JITTER = JITTER)
+        samplelatent(ztest) = predict(ztest, Zopt, θopt, μopt, Σopt, Kopt; JITTER = JITTER)
 
-    #     function sample(ztest)
+        function sample(ztest)
 
-    #         local aux = samplelatent(ztest)
+            local aux = samplelatent(ztest)
 
-    #         () -> exp.(αopt * aux() .+ bopt)
+            () -> exp.(αopt * aux() .+ bopt)
 
-    #     end
+        end
 
-    # end
+    end
 
-    # return Zopt, sampleprediction
-    return Zopt, infer
+    
+    return Zopt, infer, sampleprediction
 
 end
