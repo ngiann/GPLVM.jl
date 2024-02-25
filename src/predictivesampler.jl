@@ -1,4 +1,4 @@
-predictivesampler(xtest, X, R) = predictivesampler(xtest, X, R[:θ], R[:μ], R[:Σ], R[:K], R[:α], R[:b]; JITTER = R[:JITTER])
+predictivesampler(xtest, R) = predictivesampler(xtest, R[:Z], R[:θ], R[:μ], R[:Σ], R[:K], R[:α], R[:b]; JITTER = R[:JITTER])
 
 function predictivesampler(xtest, X, θ, μ, Σ, K, α, b; JITTER = 0.0) # maybe rename X to Z
 
