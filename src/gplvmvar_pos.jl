@@ -106,44 +106,6 @@ function gplvmvar_pos(X; iterations = 1, H1 = 10, H2 = H1, seed = 1, Q = 2, JITT
          α = αopt, b = bopt, β = βopt, Z = Zopt, θ = θopt, JITTER = JITTER, rg = rg)
     end
 
-    infer = let
-
-        local D²    = pairwise(SqEuclidean(), Zopt)
-
-        local Kopt  = Symmetric(covariance(D², θopt) + JITTER*I)
-
-        local Σopt  = aux_invert_K⁻¹_plus_Λ(;K = Kopt, Λroot = Λrootopt) + JITTER*I
-
-        infer(X₊) = infertestlatent(X₊; μ = μopt, Σ = Σopt, K = Kopt, η = η, Λroot = Λrootopt, net = net, w = wopt,
-                             α = αopt, b = bopt, β = βopt, Z = Zopt, θ = θopt, JITTER = JITTER, rg = rg)
-
-        infer(U,B,S) = infertestlatent_photo(U,B,S; μ = μopt, Σ = Σopt, K = Kopt, η = η, Λroot = Λrootopt, net = net, w = wopt,
-                             α = αopt, b = bopt, β = βopt, Z = Zopt, θ = θopt, JITTER = JITTER, rg = rg)
-
-        infer
-    end
     
-    sampleprediction = let
-
-        local D²    = pairwise(SqEuclidean(), Zopt)
-
-        local Kopt  = Symmetric(covariance(D², θopt) + JITTER*I)
-
-        local Σopt  = aux_invert_K⁻¹_plus_Λ(;K = Kopt, Λroot = Λrootopt) + JITTER*I
-
-        samplelatent(ztest) = predict(ztest, Zopt, θopt, μopt, Σopt, Kopt; JITTER = JITTER)
-
-        function sample(ztest)
-
-            local aux = samplelatent(ztest)
-
-            () -> exp.(αopt * aux() .+ bopt)
-
-        end
-
-    end
-
     
-    return Zopt, infer, sampleprediction
-
 end
