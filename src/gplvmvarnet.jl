@@ -63,12 +63,12 @@ function gplvmvarnet(X; iterations = 1, α = 1e-2, seed = 1, Q = 2, JITTER = 1e-
 
         # contribution of likelihood
 
-        ℓ += - 0.5*β*sum(abs2.(X.-μ)) + D*(0.5*N*log(β) - 0.5*N*log(2π) - 0.5*β*tr(Σ))
+        ℓ += - 0.5*β*sum(abs2.(myskip.((X.-μ)))) + D*(0.5*N*log(β) - 0.5*N*log(2π) - 0.5*β*tr(Σ))
 
         # contribution of entropy 
 
-        ℓ += D*(0.5*logdet(Σ)) 
-
+        ℓ += 0.5*D*logdet(Σ)
+        
 
         return ℓ - 0.5*α*sum(abs2.(Z)) # penalty on latent coordinates
     
