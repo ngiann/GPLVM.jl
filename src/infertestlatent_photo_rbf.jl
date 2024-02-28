@@ -34,7 +34,7 @@ function inferlatent_photo(U, B, S; μ = μ, Σ = Σ, K = K, η = η, Λroot = �
         
         @assert(MARK == length(p)) # all parameters must be used up
 
-        local Z₊ = rbf(ζ, rbfweights, 0.5)' 
+        local Z₊ = rbf(ζ, rbfweights, 0.5)' ### ❗ note fixed width of rbf network ❗
        
         local ν = net(w, Z₊)
 
