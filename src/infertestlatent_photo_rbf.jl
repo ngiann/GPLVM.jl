@@ -29,6 +29,8 @@ function inferlatent_photo(U, B, S; μ = μ, Σ = Σ, K = K, η = η, Λroot = �
         local rbfweights = reshape(p[MARK+1:MARK+nwts*Q], nwts, Q); MARK += Q*nwts
         
         local Lroot = Diagonal(p[MARK+1:MARK+T]); MARK += T
+
+        local c = exp(p[MARK+1]); MARK += 1
         
         @assert(MARK == length(p)) # all parameters must be used up
 
@@ -36,13 +38,13 @@ function inferlatent_photo(U, B, S; μ = μ, Σ = Σ, K = K, η = η, Λroot = �
        
         local ν = net(w, Z₊)
 
-        return Z₊, ν, Lroot
+        return Z₊, ν, Lroot, c
 
     end
 
 
     #--------------------------------------------------
-    function objective(Z₊, ν, Lroot)
+    function objective(Z₊, ν, Lroot, c)
     #--------------------------------------------------
 
         # Calculate cross-covariance matrix between test and training inputs
@@ -88,7 +90,7 @@ function inferlatent_photo(U, B, S; μ = μ, Σ = Σ, K = K, η = η, Λroot = �
             # end
             
             # line below implements commented-out code above
-            auxE = sum( B[j,:] .* exp.(α*ν[:,t]   .+     α^2*A[t,t] / 2 .+  b) )
+            auxE = c * sum( B[j,:] .* exp.(α*ν[:,t]   .+     α^2*A[t,t] / 2 .+  b) )
 
             ℓ += logpdf(Normal(auxE, S[j,t]), U[j,t])
 
@@ -98,10 +100,10 @@ function inferlatent_photo(U, B, S; μ = μ, Σ = Σ, K = K, η = η, Λroot = �
             # end
 
             # line below implements commented-out code above
-            aux_V = sum( B[j,:].^2 .* (exp.(2*α*ν[:,t] .+ (2*α)^2*A[t,t] / 2 .+ 2b) .- (exp.(α*ν[:,t]   .+     α^2*A[t,t] / 2 .+  b)).^2) )
+            aux_V = c^2 * sum( B[j,:].^2 .* (exp.(2*α*ν[:,t] .+ (2*α)^2*A[t,t] / 2 .+ 2b) .- (exp.(α*ν[:,t]   .+     α^2*A[t,t] / 2 .+  b)).^2) )
 
         
-            ℓ += (1 / S[j,t]^2) * aux_V
+            ℓ +=  (1 / (2*S[j,t]^2)) * aux_V
 
         end
 
@@ -115,14 +117,11 @@ function inferlatent_photo(U, B, S; μ = μ, Σ = Σ, K = K, η = η, Λroot = �
     end
 
 
-
-    # initialise parameters randomly
-
-    p0 = [randn(rg, Q*nwts)*0.2; randn(rg, T)]
-
     #-----------------------------------------------------------------
-    # define options, loss and gradient to be passed to Optim.optimize
+    # initialise parameters, define options, loss and gradient
     #-----------------------------------------------------------------
+   
+    p0 = [randn(rg, Q*nwts)*0.2; randn(rg, T); 0.0]
 
     opt = Optim.Options(iterations = 1000, show_trace = true, show_every = 1)
 
@@ -149,7 +148,8 @@ function inferlatent_photo(U, B, S; μ = μ, Σ = Σ, K = K, η = η, Λroot = �
 
     results = optimize(Optim.only_fg!(fg!), p0, BFGS(), opt) # alphaguess = InitialQuadratic(α0=1e-8)
 
-    Zopt, νopt, Lroot = unpack(results.minimizer)
+    Zopt, νopt, Lroot, copt = unpack(results.minimizer)
    
-    return Zopt
+    return Zopt, copt
+
 end
