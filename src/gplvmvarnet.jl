@@ -101,9 +101,16 @@ function gplvmvarnet(X; iterations = 1, α = 1e-2, seed = 1, Q = 2, JITTER = 1e-
 
     results = optimize(Optim.only_fg!(fg!), p0, LBFGS(), opt)
 
-    Zopt, θopt, σ²opt, μopt, Λopt = unpack(results.minimizer)
+    Zopt, θopt, βopt, μopt, Λrootopt = unpack(results.minimizer)
  
+    Kopt = let
 
-    return Zopt, θopt, σ²opt, μopt, Λopt
+        local D² = pairwise(SqEuclidean(), Zopt)
+
+        Symmetric(covariance(D², θopt) + JITTER*I)
+
+    end
+
+    return (Z = Zopt, θ = θopt, β = βopt, μ = μopt, Λroot = Λrootopt, K = Kopt, JITTER = JITTER)
 
 end
