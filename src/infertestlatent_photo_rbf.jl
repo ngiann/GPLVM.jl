@@ -86,7 +86,7 @@ function inferlatent_photo(U, B, S; μ = μ, Σ = Σ, K = K, η = η, Λroot = �
             
             # local aux = zero(eltype(ν))
             # for d in 1:D
-            #     aux += B[j,d] * E(a = α, μ = ν[d,t], σ = sqrt(A[t,t]),b = b)
+            #     aux += c * B[j,d] * E(a = α, μ = ν[d,t], σ = sqrt(A[t,t]),b = b)
             # end
             
             # line below implements commented-out code above
@@ -96,7 +96,7 @@ function inferlatent_photo(U, B, S; μ = μ, Σ = Σ, K = K, η = η, Λroot = �
 
             # local aux_tr = zero(eltype(ν))
             # for d in 1:D
-            #     aux_tr += B[j,d]^2 * V(a = α, μ = ν[d,t], σ = sqrt(A[t,t]),b = b)
+            #     aux_tr += c^2 * B[j,d]^2 * V(a = α, μ = ν[d,t], σ = sqrt(A[t,t]),b = b)
             # end
 
             # line below implements commented-out code above
