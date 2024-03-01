@@ -6,6 +6,7 @@ function marginallikelihood(::Val{:gplvmvarnet_pos}, X, Z, θ, 𝛃, μ, Λroot,
 
     local D = size(X, 1); @assert(size(μ, 1) == D)
 
+    
     # calculate prior and posterior covariance matrices K and Σ
 
     local D² = pairwise(SqEuclidean(), Z)
@@ -32,7 +33,7 @@ function marginallikelihood(::Val{:gplvmvarnet_pos}, X, Z, θ, 𝛃, μ, Λroot,
 
     local B = exp.(2*α*μ .+ (2*α)^2*diag(Σ)' / 2 .+ 2b) 
 
-    local V = B .- E.^2 # this is V[X] = E[X²] - (E[X])² # There  may be a computational gain here
+    local V = B .- E.^2 # this is V[X] = E[X²] - (E[X])² # There may be a computational gain to be had here
 
     ℓ += - 0.5*D*N*log(2π) + 0.5*sum(log.(𝛃)) - 0.5*sum(𝛃 .* abs2.(myskip.(X .- E))) - 1/2 * sum(𝛃 .* V)
 
