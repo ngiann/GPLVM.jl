@@ -30,7 +30,7 @@ function marginallikelihood(::Val{:gplvmvarnet}, X, Z, θ, 𝛃, μ, Λroot; JIT
 
     # contribution of entropy 
 
-    ℓ += 0.5*D*logdet(Σ)
+    ℓ += 0.5*D*logabsdet(Σ)[1]
     
 
     return ℓ - 0.5*η*sum(abs2.(Z)) # penalty on latent coordinates - not in latex document
