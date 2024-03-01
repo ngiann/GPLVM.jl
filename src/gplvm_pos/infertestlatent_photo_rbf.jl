@@ -1,6 +1,6 @@
-inferlatent_photo(U,B,S,R) = inferlatent_photo(U, B, S; R...)
+inferlatent_photo_rbf(U,B,S,R) = inferlatent_photo_rbf(U, B, S; R...)
 
-function inferlatent_photo(U, B, S; μ = μ, Σ = Σ, K = K, η = η, Λroot = Λroot, net = net, w = w,
+function inferlatent_photo_rbf(U, B, S; μ = μ, Σ = Σ, K = K, η = η, Λroot = Λroot, net = net, w = w,
                              α = α, b = b, β = β, Z = Z, θ = θ, JITTER = JITTER, rg = rg)
 
     # work out and verify dimensions
@@ -38,13 +38,14 @@ function inferlatent_photo(U, B, S; μ = μ, Σ = Σ, K = K, η = η, Λroot = �
        
         local ν = net(w, Z₊)
 
-        return Z₊, ν, Lroot, c
+        return Z₊, ν, Lroot, c, w
 
     end
 
+count = 0; ℓbest = -Inf; zbest = zeros(Q, T)
 
     #--------------------------------------------------
-    function objective(Z₊, ν, Lroot, c)
+    function objective(Z₊, ν, Lroot, c, wrbf)
     #--------------------------------------------------
 
         # Calculate cross-covariance matrix between test and training inputs
@@ -110,10 +111,25 @@ function inferlatent_photo(U, B, S; μ = μ, Σ = Σ, K = K, η = η, Λroot = �
         # entropy contribution with constants discarded
         ℓ += 0.5*D*logabsdet(A)[1] 
 
-        # penalty on latent - not in latex
+        # penalty on rbf weights - not in latex
+        ℓ += - 0.5*η*sum(abs2.(wrbf)) - 0.5*η*sum(abs2.(Z₊)) 
+        
+        if ℓ > ℓbest
+            ℓbest = ℓ
+            zbest = copy(Z₊)
+        end
+        let 
+            count += 1
+            if mod(count, 1000) == 1
+                figure(2); cla()
+                plot(Z[1,:], Z[2,:], "b.")
+                plot(zbest[1,:], zbest[2,:],"-ro")
+                pause(0.01)
+        
+            end
+        end
 
-        ℓ += - 0.5*η*sum(abs2.(Z₊))
-
+        return ℓ
     end
 
 
@@ -121,7 +137,7 @@ function inferlatent_photo(U, B, S; μ = μ, Σ = Σ, K = K, η = η, Λroot = �
     # initialise parameters, define options, loss and gradient
     #-----------------------------------------------------------------
    
-    p0 = [randn(rg, Q*nwts)*0.2; randn(rg, T); 0.0]
+    p0 = [randn(rg, Q*nwts)*0.5; randn(rg, T); 0.0]
 
     opt = Optim.Options(iterations = 1000, show_trace = true, show_every = 1)
 
@@ -146,10 +162,24 @@ function inferlatent_photo(U, B, S; μ = μ, Σ = Σ, K = K, η = η, Λroot = �
 
     @printf("Optimising %d number of parameters\n",length(p0))
 
-    results = optimize(Optim.only_fg!(fg!), p0, BFGS(), opt) # alphaguess = InitialQuadratic(α0=1e-8)
+    # p1 = let 
 
-    Zopt, νopt, Lroot, copt = unpack(results.minimizer)
+    #     local nopt = Optim.Options(iterations = 100, show_trace = true, show_every = 100)
+
+    #     optimize(objective, p0, NelderMead(), nopt).minimizer
+
+    # end
+
+
+    @printf("Optimising %d number of parameters\n",length(p0))
+    
+    bnd = [[(-3,3) for _ in 1:Q*nwts]; [(-10,50) for _ in 1:T]; (-4,5)]
+    results = best_candidate(bboptimize(objective, p0; SearchRange = bnd, NumDimensions = length(p0), MaxFuncEvals = 200_000))
+
+    # results = optimize(Optim.only_fg!(fg!), p0, LBFGS(), opt).minimizer # alphaguess = InitialQuadratic(α0=1e-8)
+
+    Zopt, νopt, Lroot = unpack(results)
    
-    return Zopt, copt
+    return Zopt
 
 end
