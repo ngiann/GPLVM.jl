@@ -82,7 +82,7 @@ function gplvmvar_pos(X, 𝛔 = missing; iterations = 1, H1 = 10, H2 = H1, seed 
 
     VERIFY ? numerically_verify(modeltype, X, upk(results.minimizer, 𝛃)..., JITTER, η) : nothing
 
-    Zopt, θopt, βopt, μopt, Λrootopt, wopt, αopt, bopt = upk(results.minimizer, 𝛃)
+    Zopt, θopt, 𝛃opt, μopt, Λrootopt, wopt, αopt, bopt = upk(results.minimizer, 𝛃)
    
 
     #-----------------------------------------------------------------
@@ -98,7 +98,7 @@ function gplvmvar_pos(X, 𝛔 = missing; iterations = 1, H1 = 10, H2 = H1, seed 
         local Σopt  = aux_invert_K⁻¹_plus_Λ(;K = Kopt, Λroot = Λrootopt) + JITTER*I
 
         (μ = μopt, Σ = Σopt, K = Kopt, η = η, Λroot = Λrootopt, net = net, w = wopt,
-         α = αopt, b = bopt, β = βopt, Z = Zopt, θ = θopt, JITTER = JITTER, rg = rg)
+         α = αopt, b = bopt, 𝛃 = 𝛃opt, Z = Zopt, θ = θopt, JITTER = JITTER, rg = rg)
     end
 
     
