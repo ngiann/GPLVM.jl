@@ -1,75 +1,41 @@
 function gplvmvarnet(X, 𝛔 = missing; iterations = 1, η = 1e-2, seed = 1, Q = 2, JITTER = 1e-6,  H1 = 10, H2 = H1, VERIFY = false)
+    
+    #---------------------------------------------------------------------------
+    # Setup variables and free parameters: set random seed, get dimensions, etc
+    #---------------------------------------------------------------------------
+
+    # fix random seed for reproducibility
 
     rg = MersenneTwister(seed)
 
-    𝛃 = inverterrors(𝛔)
+    # auxiliary type for dispatching to appropriate method
+
+    modeltype = Val(:gplvmvarnet)
+
+    # get dimensions of data
 
     D, N = size(X)
     
-    net = ThreeLayerNetwork(in = Q, H1 = H1, H2 = H2, out=D)
-    
-    nwts = ForwardNeuralNetworks.numweights(net)
-    
+    # report to user
+
     @printf("Running gplvmvarnet.\n")
     @printf("There are %d number of data items\n", N)
     @printf("There are %d number of dimensions\n", D)
     @printf("Q=%d\n", Q)
+
+    # we work with precisions instead of standard deviations
+
+    𝛃 = inverterrors(𝛔)
+
+
+    # define neural network that modeltypes variational parameters and its number of weights
+
+    net = ThreeLayerNetwork(in = Q, H1 = H1, H2 = H2, out=D)
     
-
-    #-------------------------------------------
-    function unpack(p, ::Missing)
-    #-------------------------------------------
-
-        @assert(length(p) == Q*N + 2 + 1 + nwts + N)
-
-        local MARK = 0
-
-        local Z = reshape(p[MARK+1:MARK+Q*N], Q, N); MARK += Q*N
-
-        local θ = exp.(p[MARK+1:MARK+2]); MARK += 2
-
-        local β = exp(p[MARK+1]); MARK += 1
-
-        local w = p[MARK+1:MARK+nwts]; MARK += nwts
-
-        local Λroot = Diagonal(reshape(p[MARK+1:MARK+N], N)); MARK += N
-
-        @assert(MARK == length(p))
-
-        local μ = net(w, Z)
-
-        return Z, θ, Fill(β, D, N), μ, Λroot
-
-    end
-
-
-    #-------------------------------------------
-    function unpack(p, 𝛃)
-    #-------------------------------------------
+    nwts = ForwardNeuralNetworks.numweights(net)
     
-        @assert(length(p) == Q*N + 2 + nwts + N)
-
-        local MARK = 0
-
-        local Z = reshape(p[MARK+1:MARK+Q*N], Q, N); MARK += Q*N
-
-        local θ = exp.(p[MARK+1:MARK+2]); MARK += 2
-
-        local w = p[MARK+1:MARK+nwts]; MARK += nwts
-
-        local Λroot = Diagonal(reshape(p[MARK+1:MARK+N], N)); MARK += N
-
-        @assert(MARK == length(p))
-
-        local μ = net(w, Z)
-
-        return Z, θ, 𝛃, μ, Λroot
-
-    end
-
-
     
-    # Initialise parameters randomly
+    # Initialise free parameters randomly
 
     p0 = let 
         
@@ -78,49 +44,57 @@ function gplvmvarnet(X, 𝛔 = missing; iterations = 1, η = 1e-2, seed = 1, Q =
         
     end
     
-    @printf("Optimising %d number of parameters\n",length(p0))
+    # define auxiliary unpack function
+
+    upk(p, 𝛃) = unpack(modeltype, p, 𝛃, D, N, net, Q)
+
+
+    #---------------------------------------------------------------------------
+    # Define optimisation problem
+    #---------------------------------------------------------------------------
     
-    objective(p) = -marginallikelihood_gplvm_var_net(X, unpack(p, 𝛃)...; JITTER = JITTER, η = η)
+    # setup objective function and gradient
 
-    # numerically verify before optimisation
-
-    if VERIFY
-        tmp1 = marginallikelihood_gplvm_var_net(X, unpack(p0, 𝛃)...; JITTER = JITTER, η = η)
-        tmp2 = marginallikelihood_gplvm_var_net_VERIFY(X, unpack(p0, 𝛃)...; JITTER = JITTER, η = η)
-        @printf("Verifiying calculations\n")
-        @printf("First implementation delivers  %f\n", tmp1)
-        @printf("Second implementation delivers %f\n", tmp2)
-        @printf("difference is %f\n", tmp1-tmp2)
+    objective(p) = -marginallikelihood(modeltype, X, upk(p, 𝛃)...; JITTER = JITTER, η = η)
+    
+    function fg!(F, G, x)
+        
+        value, ∇f = Zygote.withgradient(objective, x)
+        
+        isnothing(G) || copyto!(G, ∇f[1])
+        
+        isnothing(F) || return value
+        
+        nothing
+        
     end
+
+    # set options for optimiser
 
     opt = Optim.Options(iterations = iterations, show_trace = true, show_every = 1)
 
-    function fg!(F, G, x)
-            
-        value, ∇f = Zygote.withgradient(objective, x)
+    # numerically verify before optimisation
 
-        isnothing(G) || copyto!(G, ∇f[1])
+    VERIFY ? numerically_verify(modeltype, X, upk(p0, 𝛃)..., JITTER, η) : nothing
 
-        isnothing(F) || return value
-
-        nothing
-
-    end
+    # run actual optimisation
+    
+    @printf("Optimising %d number of parameters\n",length(p0))
 
     results = optimize(Optim.only_fg!(fg!), p0, LBFGS(), opt)
 
     # numerically verify after optimisation
 
-    if VERIFY
-        tmp1 =        marginallikelihood_gplvm_var_net(X, unpack(p0, 𝛃)...; JITTER = JITTER, η = η)
-        tmp2 = marginallikelihood_gplvm_var_net_VERIFY(X, unpack(p0, 𝛃)...; JITTER = JITTER, η = η)
-        @printf("Verifiying calculations\n")
-        @printf("First implementation delivers  %f\n", tmp1)
-        @printf("Second implementation delivers %f\n", tmp2)
-        @printf("difference is %f\n", tmp1-tmp2)
-    end
+    VERIFY ? numerically_verify_gplvm_var_net(modeltype, X, results.minimizer, 𝛃, JITTER, η) : nothing
 
-    Zopt, θopt, 𝛃opt, μopt, Λrootopt = unpack(results.minimizer, 𝛃)
+
+    #---------------------------------------------------------------------------
+    # Retrieve optimised parameters.
+    # Calculate optimal prior kernel covariance matrix Kopt and return other
+    # optimised variational parameters.
+    #---------------------------------------------------------------------------
+
+    Zopt, θopt, 𝛃opt, μopt, Λrootopt = upk(results.minimizer, 𝛃)
  
     Kopt = let
 
