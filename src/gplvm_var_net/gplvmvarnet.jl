@@ -85,7 +85,7 @@ function gplvmvarnet(X, 𝛔 = missing; iterations = 1, η = 1e-2, seed = 1, Q =
 
     # numerically verify after optimisation
 
-    VERIFY ? numerically_verify_gplvm_var_net(modeltype, X, results.minimizer, 𝛃, JITTER, η) : nothing
+    VERIFY ? numerically_verify(modeltype, X, upk(results.minimizer, 𝛃)..., JITTER, η) : nothing
 
 
     #---------------------------------------------------------------------------
