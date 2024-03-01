@@ -1,4 +1,4 @@
-function gplvmvar_pos(X; iterations = 1, H1 = 10, H2 = H1, seed = 1, Q = 2, JITTER = 1e-6, η = 1e-2)
+function gplvmvar_pos(X; iterations = 1, H1 = 10, H2 = H1, seed = 1, Q = 2, JITTER = 1e-6, η = 1e-2, VERIFY = false)
 
     rg = MersenneTwister(seed)
 
@@ -44,18 +44,11 @@ function gplvmvar_pos(X; iterations = 1, H1 = 10, H2 = H1, seed = 1, Q = 2, JITT
 
     end
 
-
     
     # initialise parameters randomly
 
     p0 = [randn(rg, Q*N)*0.2; randn(rg,2)*1; 0.2*randn(rg, nwts); randn(rg, N); randn(rg, 2)]
 
-
-    # let
-    #     aaa = marginallikelihood_verify_1(X, unpack(p0)...; JITTER = JITTER, η = η)
-    #     bbb =          marginallikelihood(X, unpack(p0)...; JITTER = JITTER, η = η)
-    #     @show aaa, bbb, aaa-bbb
-    # end
 
 
     #-----------------------------------------------------------------
@@ -64,7 +57,7 @@ function gplvmvar_pos(X; iterations = 1, H1 = 10, H2 = H1, seed = 1, Q = 2, JITT
 
     opt = Optim.Options(iterations = iterations, show_trace = true, show_every = 1)
 
-    objective(p) = -marginallikelihood(X, unpack(p)...; JITTER = JITTER, η = η)
+    objective(p) = -marginallikelihood_pos(X, unpack(p)...; JITTER = JITTER, η = η)
 
     function fg!(F, G, x)
             
@@ -85,7 +78,26 @@ function gplvmvar_pos(X; iterations = 1, H1 = 10, H2 = H1, seed = 1, Q = 2, JITT
 
     @printf("Optimising %d number of parameters\n",length(p0))
 
+
+    if VERIFY
+        tmp1 = marginallikelihood_pos_verify(X, unpack(p0)...; JITTER = JITTER, η = η)
+        tmp2 =        marginallikelihood_pos(X, unpack(p0)...; JITTER = JITTER, η = η)
+        @printf("following two values for marginal log-likel should agree:\n")
+        @printf("%f\n", tmp1)
+        @printf("%f\n", tmp2)
+        @printf("difference is %f\n", tmp1-tmp2)
+    end
+
     results = optimize(Optim.only_fg!(fg!), p0, ConjugateGradient(), opt) # alphaguess = InitialQuadratic(α0=1e-8)
+
+    if VERIFY
+        tmp1 = marginallikelihood_pos_verify(X, unpack(p0)...; JITTER = JITTER, η = η)
+        tmp2 =        marginallikelihood_pos(X, unpack(p0)...; JITTER = JITTER, η = η)
+        @printf("following two values for marginal log-likel should agree:\n")
+        @printf("%f\n", tmp1)
+        @printf("%f\n", tmp2)
+        @printf("difference is %f\n", tmp1-tmp2)
+    end
 
     Zopt, θopt, βopt, μopt, Λrootopt, wopt, αopt, bopt = unpack(results.minimizer)
    
