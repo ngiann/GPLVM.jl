@@ -14,6 +14,8 @@ module GPLVM
     include("common/inverterrors.jl")
     include("common/toydata.jl")
     include("common/expectation_latent_function_values.jl")
+    include("common/expectation_of_sum_D_log_prior_zero_mean.jl")
+    include("common/entropy.jl")
 
     export toydata
 
