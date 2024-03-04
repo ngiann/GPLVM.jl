@@ -33,7 +33,7 @@ function marginallikelihood_VERIFY(::Val{:gplvmvarnet_pos}, X, Z, θ, 𝛃, μ, 
 
     # entropy contribution with constants discarded - implements eq:entropy_gplvm_pos
 
-    ℓ += 0.5*D*logdet(Σ) 
+    ℓ += D * Distributions.entropy(MvNormal(zeros(N), Σ))
 
     # penalty on latent coordinates - not in latex
 
