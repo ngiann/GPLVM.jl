@@ -77,12 +77,9 @@ function infertestlatent(X₊, 𝛃; μ = μ, Σ = Σ, K = K, η = η, Λroot = 
         # calculate posterior covariance of test latent function values
         local A = aux_invert_K⁻¹_plus_Λ(K=Symmetric(C+JITTER*I) , Λroot = Lroot)
 
-
-        local ℓ = zero(eltype(Z₊))
-        
         
         # log-prior contribution
-        ℓ += -0.5*D*N₊*log(2π) - 0.5*sum(abs2.(Cᵤ\(ν-m)')) - D*0.5*tr(C\A) - D*sum(log.(diag(Cᵤ)))
+        local ℓ = -0.5*D*N₊*log(2π) - 0.5*sum(abs2.(Cᵤ\(ν-m)')) - D*0.5*tr(C\A) - D*sum(log.(diag(Cᵤ)))
 
         # code below implements line above - keep for numerical verification
         # let
