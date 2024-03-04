@@ -38,9 +38,10 @@ function gplvm(X, 𝛔=zeros(size(X)); iterations = 1, α = 1e-2, seed = 1, Q = 
 
         for d in 1:D
 
-            Xd = @view X[d,:]
+            Xd  = @view X[d,:]
+            𝛔²d = @view 𝛔²[d,:]
 
-            Kc = cholesky(K + Diagonal(𝛔²[d,:]) + σ²*I + JITTER*I).L
+            Kc = cholesky(K + Diagonal(𝛔²d) + σ²*I + JITTER*I).L
 
             ℓ += -0.5*sum(abs2.(Kc\(Xd.-b))) - 0.5*2*sum(log.(diag(Kc))) - 0.5*N*log(2π)
             
