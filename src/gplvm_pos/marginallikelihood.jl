@@ -21,13 +21,13 @@ function marginallikelihood(::Val{:gplvmvarnet_pos}, X, Z, θ, 𝛃, μ, Λroot,
     ℓ = expectation_of_sum_D_log_prior_zero_mean(;K = K, μ = μ, Σ = Σ) # ❗check what happens with missing observations.
 
 
-    # log-likelihood contribution - implements eq:log_likel_gplvm_pos
+    # log-likelihood contribution - implements eq:log_likel_gplvm_pos - ignores/skips missing data values
 
     E, V = expectation_latent_function_values(;α = α, b = b, μ = μ, Σ = Σ)
 
     countObs = count(x -> ~ismissing(x), X)
 
-    ℓ += - 0.5*countObs*log(2π) + 0.5*sum(myskip.(log.(𝛃))) - 0.5*sum(𝛃 .* abs2.(myskip.(X .- E))) - 1/2 * sum(myskip.(𝛃 .* V))
+    ℓ += - 0.5*countObs*log(2π) + 0.5*sum(myskip.(log.(𝛃))) - 0.5*sum(myskip.(𝛃) .* abs2.(myskip.(X .- E))) - 1/2 * sum(myskip.(𝛃) .* V)
 
 
     # entropy contribution - implements eq:entropy_gplvm_pos
