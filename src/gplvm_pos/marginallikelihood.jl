@@ -15,21 +15,15 @@ function marginallikelihood(::Val{:gplvmvarnet_pos}, X, Z, θ, 𝛃, μ, Λroot,
 
     local Σ  = aux_invert_K⁻¹_plus_Λ(;K = K, Λroot = Λroot)+ JITTER*I
 
-    local U = cholesky(K).L
-    
-    # accummulate here marginal log likelihood
-
-    local ℓ = zero(eltype(Z))
-
 
     # log-prior contribution - implements equation eq:log_prior_gplvm_pos
 
-    ℓ += - 0.5*sum(abs2.(U\μ')) - 0.5*D*N*log(2π) - D*sum(log.(diag(U))) - 0.5*D*tr(U'\(U\Σ)) # tr(U'\(U\Σ)) equiv to tr(K\Σ)
+    local ℓ = expectation_of_sum_D_log_prior_zero_mean(;K = K, μ = μ, Σ = Σ)
 
 
     # log-likelihood contribution - implements eq:log_likel_gplvm_pos
 
-    local E, B, V = expectation_latent_function_values(;α = α, b = b, μ = μ, Σ = Σ)
+    local E, _, V = expectation_latent_function_values(;α = α, b = b, μ = μ, Σ = Σ)
 
     ℓ += - 0.5*D*N*log(2π) + 0.5*sum(log.(𝛃)) - 0.5*sum(𝛃 .* abs2.(myskip.(X .- E))) - 1/2 * sum(𝛃 .* V)
 
