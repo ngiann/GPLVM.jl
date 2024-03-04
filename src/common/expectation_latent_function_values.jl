@@ -6,6 +6,6 @@ function expectation_latent_function_values(;α = α, b = b, μ = μ, Σ = Σ)
 
     V = B .- E.^2 # this is V[X] = E[X²] - (E[X])² # There may be a computational gain to be had here
 
-    return E, B, V
+    return E, V
 
 end
