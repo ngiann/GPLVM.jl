@@ -10,7 +10,8 @@ function inferlatent_photo_rbf(U, B, S; μ = μ, Σ = Σ, K = K, η = η, Λroot
 
     J, T = size(U); @assert(size(B,1) == J); @assert(size(B, 2) == D); @assert(size(S) == size(U))
 
-    rbf  = GPLVM.RBF(10)
+    # set up RBF network
+    rbf  = GPLVM.RBF(10) ### ❗ note fixed number of basis functions in rbf network ❗
     nwts = numweights(rbf)
     ζ    = collect(LinRange(-1.0, 1.0, T))
 
