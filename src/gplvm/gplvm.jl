@@ -1,4 +1,4 @@
-function gplvm(X, 𝛔=missing; iterations = 1, α = 1e-2, seed = 1, Q = 2, JITTER = 1e-6, VERIFY = false)
+function gplvm(X, 𝛔=zeros(size(X)); iterations = 1, α = 1e-2, seed = 1, Q = 2, JITTER = 1e-6, VERIFY = false)
 
     # Fix random number generator for reproducibility
 
@@ -25,7 +25,7 @@ function gplvm(X, 𝛔=missing; iterations = 1, α = 1e-2, seed = 1, Q = 2, JITT
         
 
     #-------------------------------------------
-    function marginallikelihood(Z, θ, 𝛔², b)
+    function marginallikelihood(Z, θ, σ², b)
     #-------------------------------------------
 
         local D² = pairwise(SqEuclidean(), Z)
@@ -40,7 +40,7 @@ function gplvm(X, 𝛔=missing; iterations = 1, α = 1e-2, seed = 1, Q = 2, JITT
 
             Xd = @view X[d,:]
 
-            Kc = cholesky(K + Diagonal(𝛔²[d,:]) + JITTER*I).L
+            Kc = cholesky(K + Diagonal(𝛔²[d,:]) + σ²*I + JITTER*I).L
 
             ℓ += -0.5*sum(abs2.(Kc\(Xd.-b))) - 0.5*2*sum(log.(diag(Kc))) - 0.5*N*log(2π)
             
@@ -58,20 +58,20 @@ function gplvm(X, 𝛔=missing; iterations = 1, α = 1e-2, seed = 1, Q = 2, JITT
 
     # convenience functions
 
-    upk(p,𝛔²) = unpack(modeltype, p, 𝛔², D, N, Q)
+    upk(p) = unpack(modeltype, p, D, N, Q)
 
-    objective(p) = -marginallikelihood(upk(p, 𝛔²)...)
+    objective(p) = -marginallikelihood(upk(p)...)
 
     
     # Initialise parameters
 
     paraminit = let 
         
-        local p0 = ismissing(𝛔) ? [randn(rg, Q*N)*0.1; randn(rg,4)*3] : [randn(rg, Q*N)*0.1; randn(rg,3)*3]
+        local p0 = [randn(rg, Q*N)*0.1; randn(rg,4)*3]
  
-        # local nmopt = Optim.Options(iterations = 500, show_trace = true, show_every = 100)
+        local nmopt = Optim.Options(iterations = 500, show_trace = true, show_every = 100)
 
-        # optimize(objective, p0, NelderMead(), nmopt).minimizer
+        optimize(objective, p0, NelderMead(), nmopt).minimizer
 
     end
 
@@ -94,10 +94,9 @@ function gplvm(X, 𝛔=missing; iterations = 1, α = 1e-2, seed = 1, Q = 2, JITT
 
     results = optimize(Optim.only_fg!(fg!), paraminit, ConjugateGradient(), opt)
 
-    Zopt, θopt, 𝛔²opt, bopt = upk(results.minimizer, 𝛔²)
+    Zopt, θopt, σ²opt, bopt = upk(results.minimizer)
 
-    return Zopt
 
-    # return (Z = Zopt, θ = θopt, β = 1/σ²opt, noisy_K_chol = noisy_K_chol_opt, b = bopt, JITTER = JITTER)
+    # return (Z = Zopt, θ = θopt, 𝛔² = 𝛔²opt, noisy_K_chol = noisy_K_chol_opt, b = bopt, JITTER = JITTER)
 
 end
