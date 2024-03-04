@@ -4,9 +4,11 @@ authors = ["Nikos Gianniotis <ngiann@gmail.com> and contributors"]
 version = "1.0.0-DEV"
 
 [deps]
+BlackBoxOptim = "a134a8b2-14d6-55f6-9291-3336d3ab0209"
 Distances = "b4f34e82-e78d-54a5-968a-f98e89d6e8f7"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 ExponentialExpectations = "514699ec-cad0-4573-b799-e90939df45ca"
+FillArrays = "1a297f60-69ca-5386-bcde-b61e274b549b"
 ForwardNeuralNetworks = "41bbd1a4-0eca-4bcd-b6b1-8656d032eaeb"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Optim = "429524aa-4258-5aef-a3af-852621145aeb"
