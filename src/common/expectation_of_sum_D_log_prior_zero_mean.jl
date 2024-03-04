@@ -6,7 +6,7 @@ function expectation_of_sum_D_log_prior_zero_mean(;K = K, μ = μ, Σ = Σ)
 
     U = cholesky(K).L
 
-    # U'\(U\Σ) is equivalent to K\Σ
+    # tr(U'\(U\Σ)) is equivalent to tr(K\Σ)
     # - sum(log.(diag(U))) is equivalent to -0.5*logdet(K)
     # U\μ' is equivalent to ...
 
