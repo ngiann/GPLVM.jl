@@ -59,7 +59,7 @@ function gplvmvar_pos(X, 𝛔 = missing; iterations = 1, H1 = 10, H2 = H1, seed 
 
     function fg!(F, G, x)
             
-        value, ∇f = Zygote.withgradient(objective, x)
+        local value, ∇f = Zygote.withgradient(objective, x)
 
         isnothing(G) || copyto!(G, ∇f[1])
 
