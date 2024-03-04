@@ -29,11 +29,7 @@ function marginallikelihood(::Val{:gplvmvarnet_pos}, X, Z, θ, 𝛃, μ, Λroot,
 
     # log-likelihood contribution - implements eq:log_likel_gplvm_pos
 
-    local E = exp.(α*μ   .+     α^2*diag(Σ)' / 2 .+  b)
-
-    local B = exp.(2*α*μ .+ (2*α)^2*diag(Σ)' / 2 .+ 2b) 
-
-    local V = B .- E.^2 # this is V[X] = E[X²] - (E[X])² # There may be a computational gain to be had here
+    local E, B, V = expectation_latent_function_values(;α = α, b = b, μ = μ, Σ = Σ)
 
     ℓ += - 0.5*D*N*log(2π) + 0.5*sum(log.(𝛃)) - 0.5*sum(𝛃 .* abs2.(myskip.(X .- E))) - 1/2 * sum(𝛃 .* V)
 
