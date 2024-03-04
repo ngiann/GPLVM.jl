@@ -10,8 +10,6 @@ function marginallikelihood_VERIFY(::Val{:gplvmvarnet_pos}, X, Z, θ, 𝛃, μ, 
 
     local Σ  = aux_invert_K⁻¹_plus_Λ(;K = K, Λroot = Λroot)+ JITTER*I
 
-    # local U = cholesky(K).L
-    
     local ℓ = zero(eltype(Z))
 
 
@@ -27,9 +25,10 @@ function marginallikelihood_VERIFY(::Val{:gplvmvarnet_pos}, X, Z, θ, 𝛃, μ, 
     # log-likelihood contribution - implements eq:log_likel_gplvm_pos
     
     for n in 1:N, d in 1:D
-        # ℓ += Elognormal(y=X[d,n], a = α, μ = μ[d,n], σ = sqrt(Σ[n,n]), β = β, b = b)
-        # ℓ += Elognormal_barrier(X[d,n]; a = α, μ = μ[d,n], σ = sqrt(Σ[n,n]), β = β, b = b)
-        ℓ += logpdf(Normal(E(a = α, μ = μ[d,n], σ = sqrt(Σ[n,n]), b = b), 1/sqrt(𝛃[d,n])), X[d,n]) - 0.5*𝛃[d,n]*V(;a=α, μ=μ[d,n], σ=sqrt(Σ[n,n]), b=b)
+        
+        ℓ += logpdf(Normal(E(a = α, μ = μ[d,n], σ = sqrt(Σ[n,n]), b = b), 1/sqrt(𝛃[d,n])), X[d,n]) - 
+                0.5*𝛃[d,n]*V(a = α, μ = μ[d,n], σ = sqrt(Σ[n,n]), b = b)
+    
     end
 
     # entropy contribution with constants discarded - implements eq:entropy_gplvm_pos
