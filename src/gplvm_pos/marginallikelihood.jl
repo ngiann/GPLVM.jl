@@ -30,7 +30,7 @@ function marginallikelihood(::Val{:gplvmvarnet_pos}, X, Z, θ, 𝛃, μ, Λroot,
     ℓ += - 0.5*countObs*log(2π) + 0.5*sum(myskip.(log.(𝛃))) - 0.5*sum(𝛃 .* abs2.(myskip.(X .- E))) - 1/2 * sum(myskip.(𝛃 .* V))
 
 
-    # entropy contribution with constants discarded - implements eq:entropy_gplvm_pos
+    # entropy contribution - implements eq:entropy_gplvm_pos
 
     ℓ += D*entropy(Σ) # note multiplication with D
 
