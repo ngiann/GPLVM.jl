@@ -70,42 +70,48 @@ count = 0; ℓbest = -Inf; zbest = zeros(Q, T)
         # log-prior contribution
         local ℓ = zero(eltype(Z₊))
 
-        local Cᵤ = cholesky(Symmetric(C)).L
-        
-        ℓ += -0.5*D*T*log(2π) - 0.5*sum(abs2.(Cᵤ\(ν-m)')) - D*0.5*tr(C\A) - D*sum(log.(diag(Cᵤ)))
+        # local Cᵤ = cholesky(Symmetric(C)).L
+        # ℓ += -0.5*D*T*log(2π) - 0.5*sum(abs2.(Cᵤ\(ν-m)')) - D*0.5*tr(C\A) - D*sum(log.(diag(Cᵤ)))
 
-        # code below implements line above - keep for numerical verification
-        # let
-        #     ℓ1 = 0
-        #     for d in 1:D
-        #         ℓ1 += logpdf(MvNormal(ν[d,:], Symmetric(C)), m[d,:]) - 0.5*tr(C\A)
-        #     end
-        # end
+        ℓ +=  expectation_of_sum_D_log_prior_zero_mean(;K = Symmetric(C), μ = (ν-m), Σ = A)
+
 
         # log-likelihood contribution
 
         for t in 1:T, j in 1:J
             
-            # local aux = zero(eltype(ν))
-            # for d in 1:D
-            #     aux += c * B[j,d] * E(a = α, μ = ν[d,t], σ = sqrt(A[t,t]),b = b)
-            # end
             
-            # line below implements commented-out code above
-            auxE = c * sum( B[j,:] .* exp.(α*ν[:,t]   .+     α^2*A[t,t] / 2 .+  b) )
-
-            ℓ += logpdf(Normal(auxE, S[j,t]), U[j,t])
-
-            # local aux_tr = zero(eltype(ν))
+            # local aux = 0.0
             # for d in 1:D
-            #     aux_tr += c^2 * B[j,d]^2 * V(a = α, μ = ν[d,t], σ = sqrt(A[t,t]),b = b)
+            #     aux += c * B[j,d] * ExponentialExpectations.E(a = α, μ = ν[d,t], σ = sqrt(A[t,t]),b = b)
             # end
+            # ℓ += logpdf(Normal(aux, S[j,t]), U[j,t])
+            
+            # following two lines implement above commented out block - keep above for numerical verification
 
-            # line below implements commented-out code above
-            aux_V = c^2 * sum( B[j,:].^2 .* (exp.(2*α*ν[:,t] .+ (2*α)^2*A[t,t] / 2 .+ 2b) .- (exp.(α*ν[:,t]   .+     α^2*A[t,t] / 2 .+  b)).^2) )
+            Ef = exp.(α*ν[:,t] .+ α^2*A[t,t] / 2 .+  b)
+            
+            ℓ += logpdf(Normal(c*sum(B[j,:].*Ef), S[j,t]), U[j,t])
 
+            # local aux_tr = 0.0
+            # for d in 1:D
+            #     aux_tr += c^2 * B[j,d]^2 * ExponentialExpectations.V(a = α, μ = ν[d,t], σ = sqrt(A[t,t]),b = b)
+            # end
+            # ℓ +=  (1 / (2*S[j,t]^2)) * aux_tr
+
+            # following let block implements above commented out block - keep above for numerical verification
+            local Vterm = let
+                
+                local Ef² = exp.(2*α*ν[:,t] .+ (2*α)^2*A[t,t] / 2 .+ 2b) 
+
+                local V = Ef² .- Ef.^2 # this is V[X] = E[X²] - (E[X])² # There may be a computational gain to be had here
+
+                c^2 * sum( B[j,:].^2 .* V)
+
+            end
         
-            ℓ +=  (1 / (2*S[j,t]^2)) * aux_V
+
+            ℓ +=  (1 / (2*S[j,t]^2)) * Vterm
 
         end
 
@@ -114,21 +120,6 @@ count = 0; ℓbest = -Inf; zbest = zeros(Q, T)
 
         # penalty on rbf weights - not in latex
         ℓ += - 0.5*η*sum(abs2.(wrbf)) - 0.5*η*sum(abs2.(Z₊)) 
-        
-        # if ℓ > ℓbest
-        #     ℓbest = ℓ
-        #     zbest = copy(Z₊)
-        # end
-        # let 
-        #     count += 1
-        #     if mod(count, 1000) == 1
-        #         figure(2); cla()
-        #         plot(Z[1,:], Z[2,:], "b.")
-        #         plot(zbest[1,:], zbest[2,:],"-ro")
-        #         pause(0.01)
-        
-        #     end
-        # end
 
         return ℓ
     end
@@ -177,7 +168,7 @@ count = 0; ℓbest = -Inf; zbest = zeros(Q, T)
     bnd = [[(-3,3) for _ in 1:Q*nwts]; [(-10,50) for _ in 1:T]; (-4,5)]
     p1 = best_candidate(bboptimize(objective, p0; Method=:generating_set_search, SearchRange = bnd, NumDimensions = length(p0), MaxFuncEvals = 200_000))
 
-    results = optimize(objective, p1, LBFGS(), opt, autodiff=:forward).minimizer # alphaguess = InitialQuadratic(α0=1e-8)
+    results = optimize(objective, p1, LBFGS(), opt, autodiff=:forward).minimizer
 
     Zopt, νopt, Lroot = unpack(results)
    
