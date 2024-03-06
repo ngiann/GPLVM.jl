@@ -1,7 +1,7 @@
-inferlatent_photo_rbf(U,B,S,R) = inferlatent_photo_rbf(U, B, S; R...)
+inferlightcurve(tobs,U,B,S,R) = inferlightcurve_(tobs, U, B, S; R...)
 
-function inferlatent_photo_rbf(U, B, S; μ = μ, Σ = Σ, K = K, η = η, Λroot = Λroot, net = net, w = w,
-                             α = α, b = b, β = β, Z = Z, θ = θ, JITTER = JITTER, rg = rg)
+function inferlightcurve_(tobs, U, B, S; μ = μ, Σ = Σ, K = K, η = η, Λroot = Λroot, net = net, w = w,
+                             α = α, b = b, 𝛃 = 𝛃, Z = Z, θ = θ, JITTER = JITTER, rg = rg)
 
     # work out and verify dimensions
     D, N = size(μ); @assert(N == size(Z, 2) == size(Λroot, 1) == size(Λroot, 2))
@@ -13,7 +13,7 @@ function inferlatent_photo_rbf(U, B, S; μ = μ, Σ = Σ, K = K, η = η, Λroot
     # set up RBF network
     rbf  = GPLVM.RBF(10) ### ❗ note fixed number of basis functions in rbf network ❗
     nwts = numweights(rbf)
-    ζ    = collect(LinRange(-1.0, 1.0, T))
+    ζ    = 2*((sort(tobs) .- minimum(tobs)) / (maximum(tobs) - minimum(tobs))) .- 1.0
 
     # precalculate
 
@@ -39,7 +39,7 @@ function inferlatent_photo_rbf(U, B, S; μ = μ, Σ = Σ, K = K, η = η, Λroot
        
         local ν = net(w, Z₊)
 
-        return Z₊, ν, Lroot, c, w
+        return Z₊, ν, Lroot, c, rbfweights
 
     end
 
@@ -115,20 +115,20 @@ count = 0; ℓbest = -Inf; zbest = zeros(Q, T)
         # penalty on rbf weights - not in latex
         ℓ += - 0.5*η*sum(abs2.(wrbf)) - 0.5*η*sum(abs2.(Z₊)) 
         
-        if ℓ > ℓbest
-            ℓbest = ℓ
-            zbest = copy(Z₊)
-        end
-        let 
-            count += 1
-            if mod(count, 1000) == 1
-                figure(2); cla()
-                plot(Z[1,:], Z[2,:], "b.")
-                plot(zbest[1,:], zbest[2,:],"-ro")
-                pause(0.01)
+        # if ℓ > ℓbest
+        #     ℓbest = ℓ
+        #     zbest = copy(Z₊)
+        # end
+        # let 
+        #     count += 1
+        #     if mod(count, 1000) == 1
+        #         figure(2); cla()
+        #         plot(Z[1,:], Z[2,:], "b.")
+        #         plot(zbest[1,:], zbest[2,:],"-ro")
+        #         pause(0.01)
         
-            end
-        end
+        #     end
+        # end
 
         return ℓ
     end
@@ -175,9 +175,9 @@ count = 0; ℓbest = -Inf; zbest = zeros(Q, T)
     @printf("Optimising %d number of parameters\n",length(p0))
     
     bnd = [[(-3,3) for _ in 1:Q*nwts]; [(-10,50) for _ in 1:T]; (-4,5)]
-    results = best_candidate(bboptimize(objective, p0; SearchRange = bnd, NumDimensions = length(p0), MaxFuncEvals = 200_000))
+    p1 = best_candidate(bboptimize(objective, p0; Method=:generating_set_search, SearchRange = bnd, NumDimensions = length(p0), MaxFuncEvals = 200_000))
 
-    # results = optimize(Optim.only_fg!(fg!), p0, LBFGS(), opt).minimizer # alphaguess = InitialQuadratic(α0=1e-8)
+    results = optimize(objective, p1, LBFGS(), opt, autodiff=:forward).minimizer # alphaguess = InitialQuadratic(α0=1e-8)
 
     Zopt, νopt, Lroot = unpack(results)
    
