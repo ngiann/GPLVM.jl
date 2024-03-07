@@ -1,6 +1,6 @@
-predictgplvmvarnet(xtest, R) = predictgplvmvarnet(xtest, R[:Z], R[:θ], R[:μ], R[:Λroot], R[:K]; JITTER = R[:JITTER])
+predictgplvmvarnet(xtest, R) = predictgplvmvarnet(xtest, R[:Z], R[:θ], R[:μ], R[:Λroot], R[:K], R[:b]; JITTER = R[:JITTER])
 
-function predictgplvmvarnet(xtest, X, θ, μ, Λroot, K; JITTER = JITTER)
+function predictgplvmvarnet(xtest, X, θ, μ, Λroot, K, b; JITTER = JITTER)
 
     @assert(size(xtest, 1) == size(X, 1))
 
@@ -25,7 +25,7 @@ function predictgplvmvarnet(xtest, X, θ, μ, Λroot, K; JITTER = JITTER)
     # Distribution of latent function values for test data
     #---------------------------------------------------------
 
-    μpred = K_Xx' * (K \ μ')
+    μpred = K_Xx' * (K \ (μ'.-b)) .+ b
 
     Σpred = K_xx - K_Xx' * aux_invert_K_plus_Λ⁻¹(K=K, Λroot=Λroot) * K_Xx
 

@@ -1,4 +1,4 @@
-function marginallikelihood_VERIFY(::Val{:gplvmvarnet}, X, Z, θ, 𝛃, μ, Λroot; JITTER = JITTER, η = η)
+function marginallikelihood_VERIFY(::Val{:gplvmvarnet}, X, Z, θ, 𝛃, μ, Λroot, b; JITTER = JITTER, η = η)
     
     # sort out dimensions
 
@@ -25,7 +25,7 @@ function marginallikelihood_VERIFY(::Val{:gplvmvarnet}, X, Z, θ, 𝛃, μ, Λro
 
     for d in 1:D
         
-        ℓ += logpdf(MvNormal(zeros(N), K), μ[d,:]) - 0.5*tr(K\Σ)
+        ℓ += logpdf(MvNormal(zeros(N) .+ b, K), μ[d,:]) - 0.5*tr(K\Σ)
 
     end
     

@@ -1,4 +1,4 @@
-function marginallikelihood(::Val{:gplvmvarnet}, X, Z, θ, 𝛃, μ, Λroot; JITTER = JITTER, η = η)
+function marginallikelihood(::Val{:gplvmvarnet}, X, Z, θ, 𝛃, μ, Λroot, b; JITTER = JITTER, η = η)
 
     # sort out dimensions
 
@@ -17,7 +17,7 @@ function marginallikelihood(::Val{:gplvmvarnet}, X, Z, θ, 𝛃, μ, Λroot; JIT
 
     # contribution of prior to marginal log likelihood
 
-    local ℓ = expectation_of_sum_D_log_prior_zero_mean(K=K; μ = μ, Σ = Σ)
+    local ℓ = expectation_of_sum_D_log_prior_zero_mean(K=K; μ = μ.-b, Σ = Σ)
 
     # contribution of likelihood
     

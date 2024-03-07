@@ -39,8 +39,8 @@ function gplvmvarnet(X, 𝛔 = missing; iterations = 1, η = 1e-2, seed = 1, Q =
 
     p0 = let 
         
-        ismissing(𝛃) ? [randn(rg, Q*N)*0.2; randn(rg,3)*1; 0.1*randn(rg, nwts); randn(rg, N)] :
-        [randn(rg, Q*N)*0.2; randn(rg,2)*1; 0.1*randn(rg, nwts); randn(rg, N)]
+        ismissing(𝛃) ? [randn(rg, Q*N)*0.2; randn(rg,3)*1; 0.1*randn(rg, nwts); randn(rg, N); randn(rg)] :
+        [randn(rg, Q*N)*0.2; randn(rg,2)*1; 0.1*randn(rg, nwts); randn(rg, N); randn(rg)]
         
     end
     
@@ -94,7 +94,7 @@ function gplvmvarnet(X, 𝛔 = missing; iterations = 1, η = 1e-2, seed = 1, Q =
     # optimised variational parameters.
     #---------------------------------------------------------------------------
 
-    Zopt, θopt, 𝛃opt, μopt, Λrootopt = upk(results.minimizer, 𝛃)
+    Zopt, θopt, 𝛃opt, μopt, Λrootopt, bopt = upk(results.minimizer, 𝛃)
  
     Kopt = let
 
@@ -104,6 +104,6 @@ function gplvmvarnet(X, 𝛔 = missing; iterations = 1, η = 1e-2, seed = 1, Q =
 
     end
 
-    return (Z = Zopt, θ = θopt, 𝛃 = 𝛃opt, μ = μopt, Λroot = Λrootopt, K = Kopt, JITTER = JITTER)
+    return (Z = Zopt, θ = θopt, 𝛃 = 𝛃opt, μ = μopt, Λroot = Λrootopt, K = Kopt, b = bopt, JITTER = JITTER)
 
 end

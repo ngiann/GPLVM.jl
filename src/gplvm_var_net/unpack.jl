@@ -2,7 +2,7 @@ function unpack(::Val{:gplvmvarnet}, p, ::Missing, D, N, net, Q)
 
     nwts = ForwardNeuralNetworks.numweights(net)
 
-    @assert(length(p) == Q*N + 2 + 1 + nwts + N)
+    @assert(length(p) == Q*N + 2 + 1 + nwts + N + 1)
 
     MARK = 0
 
@@ -16,11 +16,13 @@ function unpack(::Val{:gplvmvarnet}, p, ::Missing, D, N, net, Q)
 
     Λroot = Diagonal(reshape(p[MARK+1:MARK+N], N)); MARK += N
 
+    b = p[MARK+1]; MARK += 1
+
     @assert(MARK == length(p))
 
     μ = net(w, Z)
 
-    return Z, θ, Fill(β, D, N), μ, Λroot
+    return Z, θ, Fill(β, D, N), μ, Λroot, b
 
 end
 
@@ -29,7 +31,7 @@ function unpack(::Val{:gplvmvarnet}, p, 𝛃, D, N, net, Q)
 
     nwts = ForwardNeuralNetworks.numweights(net)
 
-    @assert(length(p) == Q*N + 2 + nwts + N)
+    @assert(length(p) == Q*N + 2 + nwts + N + 1)
 
     MARK = 0
 
@@ -41,10 +43,12 @@ function unpack(::Val{:gplvmvarnet}, p, 𝛃, D, N, net, Q)
 
     Λroot = Diagonal(reshape(p[MARK+1:MARK+N], N)); MARK += N
 
+    b = p[MARK+1]; MARK += 1
+
     @assert(MARK == length(p))
 
     μ = net(w, Z)
 
-    return Z, θ, 𝛃, μ, Λroot
+    return Z, θ, 𝛃, μ, Λroot, b
 
 end
