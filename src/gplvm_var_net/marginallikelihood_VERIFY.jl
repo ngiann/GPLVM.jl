@@ -47,7 +47,7 @@ function marginallikelihood_VERIFY(::Val{:gplvmvarnet}, X, Z, θ, 𝛃, μ, Λro
   
     # entropy contribution
 
-    ℓ += 0.5*D*logdet(Σ)
+    ℓ += D * Distributions.entropy(MvNormal(zeros(N), Σ))
         
     
     return ℓ - 0.5*η*sum(abs2.(Z)) # penalty on latent coordinates
