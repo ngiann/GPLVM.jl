@@ -46,13 +46,13 @@ module GPLVM
     include("gplvm_pos/marginallikelihood.jl")
     include("gplvm_pos/marginallikelihood_VERIFY.jl")
     include("gplvm_pos/infertestlatent.jl")
-    include("gplvm_pos/infertestlatent_photo_rbf.jl")
+    include("gplvm_pos/inferlightcurve.jl")
     include("gplvm_pos/infertestlatent_photo.jl")
     include("gplvm_pos/numerically_VERIFY.jl")
     include("gplvm_pos/unpack.jl")
 
    
     export gplvmvar_pos,  gplvmvarnet
-    export inferlatent, infertestlatent_photo, inferlatent_photo_rbf, predictivesampler, predictgplvm, predictgplvmvarnet
+    export inferlatent, infertestlatent_photo, inferlightcurve, predictivesampler, predictgplvm, predictgplvmvarnet
 
 end

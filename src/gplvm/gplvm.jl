@@ -70,9 +70,9 @@ function gplvm(X, 𝛔=zeros(size(X)); iterations = 1, α = 1e-2, seed = 1, Q = 
         
         local p0 = [randn(rg, Q*N)*0.1; randn(rg,4)*3]
  
-        local nmopt = Optim.Options(iterations = 500, show_trace = true, show_every = 100)
+        # local nmopt = Optim.Options(iterations = 500, show_trace = true, show_every = 1)
 
-        optimize(objective, p0, NelderMead(), nmopt).minimizer
+        # optimize(objective, p0, NelderMead(), nmopt).minimizer
 
     end
 
@@ -98,6 +98,6 @@ function gplvm(X, 𝛔=zeros(size(X)); iterations = 1, α = 1e-2, seed = 1, Q = 
     Zopt, θopt, σ²opt, bopt = upk(results.minimizer)
 
 
-    # return (Z = Zopt, θ = θopt, 𝛔² = 𝛔²opt, noisy_K_chol = noisy_K_chol_opt, b = bopt, JITTER = JITTER)
+    return (Z = Zopt, θ = θopt, 𝛔² = 𝛔²opt, noisy_K_chol = noisy_K_chol_opt, b = bopt, JITTER = JITTER)
 
 end
