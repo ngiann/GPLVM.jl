@@ -1,0 +1,7 @@
+[bossspectralmodel]
+git-tree-sha1 = "13121d007d1ce2c2575b370b5c7de631aac19cc2"
+lazy = true
+
+    [[bossspectralmodel.download]]
+    sha256 = "d6bc5a0cd03435d758efd353499c98288e98af810a7d0add986fe75dbc90c77e"
+    url = "https://www.dropbox.com/scl/fi/hvlqaomhnwhw8m21px09y/bossspectralmodel.tar.gz?rlkey=hcrdcfgcgo9v3swakumr1re1o"
