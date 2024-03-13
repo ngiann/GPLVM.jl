@@ -5,6 +5,8 @@ module GPLVM
     using ExponentialExpectations, FillArrays
     using ForwardNeuralNetworks
     using Printf, PyPlot
+    using JLD2
+    using Artifacts, LazyArtifacts
     
     # common
     include("common/covariance.jl" )
@@ -51,8 +53,11 @@ module GPLVM
     include("gplvm_pos/numerically_VERIFY.jl")
     include("gplvm_pos/unpack.jl")
 
+    # saved model for GPLVM₊
+    include("loadbossmodel.jl")
+
    
     export gplvmvar_pos,  gplvmvarnet
     export inferlatent, infertestlatent_photo, inferlightcurve, predictivesampler, predictgplvm, predictgplvmvarnet
-
+    export loadbossmodel
 end
