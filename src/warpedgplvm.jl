@@ -62,7 +62,7 @@ function warpedgplvm(X; iterations = 1, α = 1e-2, seed = 1, Q = 2, JITTER = 1e-
 
         local ℓ = D * (-0.5*N*log(2π)  - 0.5*2*sum(log.(diag(U)))) -0.5*sum(abs2.((U\(b .+ log.(X')))))
 
-        ℓ += - sum(log.(1.0 ./ X))
+        ℓ +=  sum(log.(1.0 ./ X))
             
         return ℓ - 0.5*α*sum(abs2.(Z))
 
