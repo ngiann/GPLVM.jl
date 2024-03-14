@@ -105,17 +105,8 @@ function warpedgplvm(X; iterations = 1, α = 1e-2, seed = 1, Q = 2, JITTER = 1e-
 
     objective(p) = -marginallikelihood(unpack(p)...)
 
-    paraminit = let 
-        
-        local p0 = [randn(rg, Q*N)*0.1; randn(rg,4)*3]
-
-        # local nmopt = Optim.Options(iterations = 1000, show_trace = true, show_every = 10)
-
-        # optimize(objective, p0, NelderMead(), nmopt).minimizer
-
-    end
-
-
+    paraminit = [randn(rg, Q*N)*0.1; randn(rg,4)*3]
+    
 
     opt = Optim.Options(iterations = iterations, show_trace = true, show_every = 1)
 
