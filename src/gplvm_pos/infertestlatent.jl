@@ -108,7 +108,7 @@ function infertestlatent(X₊, 𝛃; μ = μ, Σ = Σ, K = K, η = η, Λroot = 
 
     # initialise parameters randomly
 
-    p0 = [randn(rg, Q*N₊)*0.2; randn(rg, N₊)]
+    p0 = [randn(rg, Q*N₊); randn(rg, N₊)]
 
     #-----------------------------------------------------------------
     # define options, loss and gradient to be passed to Optim.optimize
