@@ -36,6 +36,9 @@ module GPLVM
     include("gplvm_var_net/predictgplvmvarnet.jl")
     include("gplvm_var_net/numerically_VERIFY.jl")
     include("gplvm_var_net/unpack.jl")
+    include("gplvm_var_net/inferlatentgplvmvarnet.jl")
+
+    export inferlatentgplvmvarnet
 
     # warped GPLVM
     include("warpedgplvm.jl")
