@@ -1,7 +1,7 @@
 function inferlatentgplvmvarnet(ytest, R; iterations = 1000, repeats = 10) 
 
 
-    Q = ength(R[:Z][:,1]) # dimension of latent space
+    Q = length(R[:Z][:,1]) # dimension of latent space
 
 
     function loss(x)
