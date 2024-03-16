@@ -2,24 +2,24 @@
 
 # 1. At testing no error measurements provided: assume at training GPLVM₊ precision was optimised.
 
-function inferlatent(X₊, R; iterations = 10) 
+function inferlatent(X₊, R; iterations = 10, repeats=1) 
     
     @assert isa(R[:𝛃], FillArrays.AbstractFillMatrix)
 
     infertestlatent(X₊, Fill(R[:𝛃][1], size(X₊)); μ = R[:μ], Σ = R[:Σ], K = R[:K], η = R[:η], Λroot = R[:Λroot], net = R[:net], w = R[:w],
-    α = R[:α], b = R[:b], Z = R[:Z], θ = R[:θ], JITTER = R[:JITTER], rg = R[:rg], iterations = iterations)
+    α = R[:α], b = R[:b], Z = R[:Z], θ = R[:θ], JITTER = R[:JITTER], rg = R[:rg], iterations = iterations, repeats = repeats)
 
 end
 
 # 2. At testing error measuments are provided.
 
-inferlatent(X₊, 𝛔, R; iterations = iterations) = infertestlatent(X₊, inverterrors(𝛔);  μ = R[:μ], Σ = R[:Σ], K = R[:K], η = R[:η], Λroot = R[:Λroot], net = R[:net], w = R[:w],
-α = R[:α], b = R[:b], Z = R[:Z], θ = R[:θ], JITTER = R[:JITTER], rg = R[:rg], iterations = iterations)
+inferlatent(X₊, 𝛔, R; iterations = iterations, repeats = repeats) = infertestlatent(X₊, inverterrors(𝛔);  μ = R[:μ], Σ = R[:Σ], K = R[:K], η = R[:η], Λroot = R[:Λroot], net = R[:net], w = R[:w],
+α = R[:α], b = R[:b], Z = R[:Z], θ = R[:θ], JITTER = R[:JITTER], rg = R[:rg], iterations = iterations, repeats = repeats)
 
 
 
 function infertestlatent(X₊, 𝛃; μ = μ, Σ = Σ, K = K, η = η, Λroot = Λroot, net = net, w = w,
-                             α = α, b = b, Z = Z, θ = θ, JITTER = JITTER, rg = rg, iterations = iterations)
+                             α = α, b = b, Z = Z, θ = θ, JITTER = JITTER, rg = rg, iterations = iterations, repeats = repeats)
 
     # sort out dimensions
 
@@ -107,14 +107,21 @@ function infertestlatent(X₊, 𝛃; μ = μ, Σ = Σ, K = K, η = η, Λroot = 
 
 
     # initialise parameters randomly
+    @assert(N₊ == 1)
 
-    p0 = [randn(rg, Q*N₊); randn(rg, N₊)]
+    function p0()
+
+        local luckyindex = ceil(Int, rand(rg)*(size(Z,2))) 
+        
+        [Z[:,luckyindex]; randn(rg, N₊)]
+
+    end
 
     #-----------------------------------------------------------------
     # define options, loss and gradient to be passed to Optim.optimize
     #-----------------------------------------------------------------
 
-    opt = Optim.Options(iterations = iterations, show_trace = true, show_every = 1)
+    opt = Optim.Options(iterations = iterations, show_trace = false, show_every = 1)
 
     objective(p) = -objective(unpack(p)...)
 
@@ -135,11 +142,13 @@ function infertestlatent(X₊, 𝛃; μ = μ, Σ = Σ, K = K, η = η, Λroot = 
     # Carry out actual optimisation and obtain optimised parameters
     #-----------------------------------------------------------------
 
-    @printf("Optimising %d number of parameters\n",length(p0))
+    @printf("Optimising %d number of parameters\n",length(p0()))
 
-    results = optimize(Optim.only_fg!(fg!), p0, ConjugateGradient(), opt) # alphaguess = InitialQuadratic(α0=1e-8)
+    solutions = [optimize(Optim.only_fg!(fg!), p0(), ConjugateGradient(), opt) for _ in 1:repeats] # alphaguess = InitialQuadratic(α0=1e-8)
 
-    Zopt, νopt, Lroot = unpack(results.minimizer)
+    bestindex = argmin([s.minimizer for s in solutions])
+
+    Zopt, νopt, Lroot = unpack(solutions[bestindex].minimizer)
    
     return Zopt
 
