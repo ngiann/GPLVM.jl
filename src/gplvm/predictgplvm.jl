@@ -1,8 +1,10 @@
-predictgplvm(y, xtest, R) = predictgplvm(y, xtest, R[:Z], R[:θ], R[:noisy_K_chol], R[:b]; JITTER = R[:JITTER])
+predictgplvm(xtest, R) = predictgplvm(xtest, R[:X], R[:Z], R[:θ], R[:K], R[:b], R[:idx]; JITTER = R[:JITTER])
 
-function predictgplvm(y, xtest, X, θ, noisy_K_chol, b; JITTER = 0.0)
+function predictgplvm(xtest, Y, X, θ, K, b, idx; JITTER = 0.0)
 
-    # noisy_K_chol is the lower cholesky decomposition of the kernel covariance matrix plus noise and jitter
+    # matrix K includes observation noise
+ 
+    D, N = size(Y); @assert(N == size(K,1) == size(K,2))
 
     #---------------------------------------------------------
     # Calculate covariance matrices
@@ -22,20 +24,35 @@ function predictgplvm(y, xtest, X, θ, noisy_K_chol, b; JITTER = 0.0)
 
 
     #---------------------------------------------------------
-    # Predictive mean and covariance
+    # Predictive mean and covariance per dimension
     #---------------------------------------------------------
 
     # Note that inv(A)*B is equivalent to A\B and U'\(U\B)
     # where U = cholesky(A).L
 
-    U = noisy_K_chol
+    μpred = map(1:D) do d
 
-    invK_mul_K_Xx = (U'\ (U \  K_Xx))
+        Kd = @views K[idx[d], idx[d]]
 
-    μpred = K_Xx' * invK_mul_K_Xx * (y.-b) .+ b  # consult eq. 2.25 in GPML
+        Yd = @views vec(Y[d,idx[d]])
+        
+        K_Xx_d = @views K_Xx[idx[d],:]
 
-    Σpred = K_xx - K_Xx' * invK_mul_K_Xx         # consult eq. 2.26 in GPML
+        K_Xx_d'*(Kd\(Yd.-b)) .+ b # consult eq. 2.25 in GPML
 
-    return μpred, Σpred
+    end
+
+    Σpred = map(1:D) do d
+
+        Kd = @views K[idx[d], idx[d]]
+
+        K_Xx_d = @views K_Xx[idx[d],:]
+
+        K_xx - K_Xx_d' * (Kd \ K_Xx_d)  # consult eq. 2.26 in GPML
+
+    end
+          
+
+    return reduce(hcat, μpred), reduce(hcat, Σpred)
 
 end
