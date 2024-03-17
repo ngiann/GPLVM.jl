@@ -84,7 +84,7 @@ function gplvm(X; iterations = 1, α = 1e-2, seed = 1, Q = 2, JITTER = 1e-6, VER
     end
 
     
-    initialsolutions = [paraminit() for _ in 1:100]
+    initialsolutions = [paraminit() for _ in 1:10]
 
     bestindex = argmin(map(objective, initialsolutions))
 
