@@ -26,8 +26,9 @@ module GPLVM
     include("gplvm/gplvm.jl")
     include("gplvm/predictgplvm.jl")
     include("gplvm/unpack.jl")
+    include("gplvm/inferlatentgplvm.jl")
 
-    export gplvm
+    export gplvm, inferlatentgplvm
 
     # variational GPLVM with auxiliary network modelling variational parameters 
     include("gplvm_var_net/gplvmvarnet.jl")
