@@ -25,7 +25,7 @@ module GPLVM
     # standard GPLVM
     include("gplvm/gplvm.jl")
     include("gplvm/predictgplvm.jl")
-    include("gplvm/unpack.jl")
+    include("gplvm/unpackgplvm.jl")
     include("gplvm/inferlatentgplvm.jl")
 
     export gplvm, inferlatentgplvm
@@ -47,7 +47,7 @@ module GPLVM
     export warpedgplvm
     
     # GPLVM₊
-    include("gplvm_pos/gplvmvar_pos.jl")
+    include("gplvm_pos/gplvmplus.jl")
     include("gplvm_pos/predictivesampler.jl")
     include("gplvm_pos/marginallikelihood.jl")
     include("gplvm_pos/marginallikelihood_VERIFY.jl")

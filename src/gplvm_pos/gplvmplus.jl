@@ -1,4 +1,4 @@
-function gplvmvar_pos(X, 𝛔 = missing; iterations = 1, H1 = 10, H2 = H1, seed = 1, Q = 2, JITTER = 1e-6, η = 1e-2, VERIFY = false)
+function gplvmplus(X, 𝛔 = missing; iterations = 1, H1 = 10, H2 = H1, seed = 1, Q = 2, JITTER = 1e-6, η = 1e-2, VERIFY = false)
 
     #---------------------------------------------------------------------------
     # Setup variables and free parameters: set random seed, get dimensions, etc
@@ -18,7 +18,7 @@ function gplvmvar_pos(X, 𝛔 = missing; iterations = 1, H1 = 10, H2 = H1, seed 
     
     # report to user
 
-    @printf("Running gplvmvarnet_pos.\n")
+    @printf("Running gplvmplus.\n")
     @printf("There are %d number of data items\n", N)
     @printf("There are %d number of dimensions\n", D)
     @printf("Q=%d\n", Q)
