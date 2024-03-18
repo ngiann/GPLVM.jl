@@ -47,15 +47,15 @@ module GPLVM
     export warpedgplvm
     
     # GPLVM₊
-    include("gplvm_pos/gplvmplus.jl")
-    include("gplvm_pos/predictivesampler.jl")
-    include("gplvm_pos/marginallikelihood.jl")
-    include("gplvm_pos/marginallikelihood_VERIFY.jl")
-    include("gplvm_pos/infertestlatent.jl")
-    include("gplvm_pos/inferlightcurve.jl")
-    include("gplvm_pos/infertestlatent_photo.jl")
-    include("gplvm_pos/numerically_VERIFY.jl")
-    include("gplvm_pos/unpack.jl")
+    include("gplvmplus/gplvmplus.jl")
+    include("gplvmplus/predictivesampler.jl")
+    include("gplvmplus/marginallikelihood.jl")
+    include("gplvmplus/marginallikelihood_VERIFY.jl")
+    include("gplvmplus/infertestlatent.jl")
+    include("gplvmplus/inferlightcurve.jl")
+    include("gplvmplus/infertestlatent_photo.jl")
+    include("gplvmplus/numerically_VERIFY.jl")
+    include("gplvmplus/unpack.jl")
 
     # saved model for GPLVM₊
     include("loadbossmodel.jl")
