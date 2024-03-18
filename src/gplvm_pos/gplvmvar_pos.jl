@@ -53,7 +53,7 @@ function gplvmvar_pos(X, 𝛔 = missing; iterations = 1, H1 = 10, H2 = H1, seed 
     # define options, loss and gradient to be passed to Optim.optimize
     #-----------------------------------------------------------------
 
-    opt = Optim.Options(iterations = iterations, show_trace = true, show_every = 1)
+    opt = Optim.Options(iterations = iterations, show_trace = true, show_every = 10)
 
     objective(p) = -marginallikelihood(modeltype, X, upk(p, 𝛃)...; JITTER = JITTER, η = η)
 
