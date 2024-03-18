@@ -1,4 +1,4 @@
-function marginallikelihood_VERIFY(::Val{:gplvmvarnet}, X, Z, θ, 𝛃, μ, Λroot, b; JITTER = JITTER, η = η)
+function marginallikelihood_VERIFY_gplvmvar(X, Z, θ, 𝛃, μ, Λroot, b; JITTER = JITTER, η = η)
     
     # sort out dimensions
 

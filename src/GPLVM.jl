@@ -31,15 +31,15 @@ module GPLVM
     export gplvm, inferlatentgplvm
 
     # variational GPLVM with auxiliary network modelling variational parameters 
-    include("gplvm_var_net/gplvmvarnet.jl")
-    include("gplvm_var_net/marginallikelihood.jl")
-    include("gplvm_var_net/marginallikelihood_VERIFY.jl")
-    include("gplvm_var_net/predictgplvmvarnet.jl")
-    include("gplvm_var_net/numerically_VERIFY.jl")
-    include("gplvm_var_net/unpack.jl")
-    include("gplvm_var_net/inferlatentgplvmvarnet.jl")
+    include("gplvmvar/gplvmvar.jl")
+    include("gplvmvar/marginallikelihood_gplvmvar.jl")
+    include("gplvmvar/marginallikelihood_VERIFY_gplvmvar.jl")
+    include("gplvmvar/predictgplvmvar.jl")
+    include("gplvmvar/numerically_VERIFY_gplvmvar.jl")
+    include("gplvmvar/unpack.jl")
+    include("gplvmvar/inferlatentgplvmvar.jl")
 
-    export inferlatentgplvmvarnet
+    export predictgplvmvar, inferlatentgplvmvar
 
     # warped GPLVM
     include("warpedgplvm.jl")
@@ -61,7 +61,7 @@ module GPLVM
     include("loadbossmodel.jl")
 
    
-    export gplvmplus,  gplvmvarnet
-    export inferlatent, infertestlatent_photo, inferlightcurve, predictivesampler, predictgplvm, predictgplvmvarnet
+    export gplvmplus,  gplvmvar
+    export inferlatent, infertestlatent_photo, inferlightcurve, predictivesampler, predictgplvm
     export loadbossmodel
 end

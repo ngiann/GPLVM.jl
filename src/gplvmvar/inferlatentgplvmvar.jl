@@ -1,4 +1,4 @@
-function inferlatentgplvmvarnet(ytest, R; iterations = 1000, repeats = 10) 
+function inferlatentgplvmvar(ytest, R; iterations = 1000, repeats = 10) 
 
     Q = length(R[:Z][:,1]) # dimension of latent space
 
@@ -6,7 +6,7 @@ function inferlatentgplvmvarnet(ytest, R; iterations = 1000, repeats = 10)
 
     function loss(x)
 
-        local μpred, Σpred = predictgplvmvarnet(reshape(x,Q,1), R)
+        local μpred, Σpred = predictgplvmvar(reshape(x,Q,1), R)
 
         -0.5*CountObs*log(2π) - 0.5*myskip.(sum(abs2.(((ytest - vec(μpred))))))/only(Σpred) - 0.5*CountObs*log(only(Σpred))
 

@@ -1,6 +1,6 @@
-predictgplvmvarnet(xtest, R) = predictgplvmvarnet(xtest, R[:Z], R[:θ], R[:μ], R[:Λroot], R[:K], R[:b]; JITTER = R[:JITTER])
+predictgplvmvar(xtest, R) = predictgplvmvar(xtest, R[:Z], R[:θ], R[:μ], R[:Λroot], R[:K], R[:b]; JITTER = R[:JITTER])
 
-function predictgplvmvarnet(xtest, X, θ, μ, Λroot, K, b; JITTER = JITTER)
+function predictgplvmvar(xtest, X, θ, μ, Λroot, K, b; JITTER = JITTER)
 
     @assert(size(xtest, 1) == size(X, 1))
 

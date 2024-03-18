@@ -1,4 +1,4 @@
-function gplvmvarnet(X, 𝛔 = missing; iterations = 1, η = 1e-2, seed = 1, Q = 2, JITTER = 1e-6,  H1 = 10, H2 = H1, VERIFY = false)
+function gplvmvar(X, 𝛔 = missing; iterations = 1, η = 1e-2, seed = 1, Q = 2, JITTER = 1e-6,  H1 = 10, H2 = H1, VERIFY = false)
     
     #---------------------------------------------------------------------------
     # Setup variables and free parameters: set random seed, get dimensions, etc
@@ -7,10 +7,6 @@ function gplvmvarnet(X, 𝛔 = missing; iterations = 1, η = 1e-2, seed = 1, Q =
     # fix random seed for reproducibility
 
     rg = MersenneTwister(seed)
-
-    # auxiliary type for dispatching to appropriate method
-
-    modeltype = Val(:gplvmvarnet)
 
     # get dimensions of data
 
@@ -46,7 +42,7 @@ function gplvmvarnet(X, 𝛔 = missing; iterations = 1, η = 1e-2, seed = 1, Q =
     
     # define auxiliary unpack function
 
-    upk(p, 𝛃) = unpack(modeltype, p, 𝛃, D, N, net, Q)
+    upk(p, 𝛃) = unpack_gplvmvar(p, 𝛃, D, N, net, Q)
 
 
     #---------------------------------------------------------------------------
@@ -55,7 +51,7 @@ function gplvmvarnet(X, 𝛔 = missing; iterations = 1, η = 1e-2, seed = 1, Q =
     
     # setup objective function and gradient
 
-    objective(p) = -marginallikelihood(modeltype, X, upk(p, 𝛃)...; JITTER = JITTER, η = η)
+    objective(p) = -marginallikelihood_gplvmvar(X, upk(p, 𝛃)...; JITTER = JITTER, η = η)
     
     function fg!(F, G, x)
         
@@ -75,7 +71,7 @@ function gplvmvarnet(X, 𝛔 = missing; iterations = 1, η = 1e-2, seed = 1, Q =
 
     # numerically verify before optimisation
 
-    VERIFY ? numerically_verify(modeltype, X, upk(p0, 𝛃)..., JITTER, η) : nothing
+    VERIFY ? numerically_verify_gplvmvar(X, upk(p0, 𝛃)..., JITTER, η) : nothing
 
     # run actual optimisation
     
@@ -85,7 +81,7 @@ function gplvmvarnet(X, 𝛔 = missing; iterations = 1, η = 1e-2, seed = 1, Q =
 
     # numerically verify after optimisation
 
-    VERIFY ? numerically_verify(modeltype, X, upk(results.minimizer, 𝛃)..., JITTER, η) : nothing
+    VERIFY ? numerically_verify_gplvmvar(X, upk(results.minimizer, 𝛃)..., JITTER, η) : nothing
 
 
     #---------------------------------------------------------------------------
