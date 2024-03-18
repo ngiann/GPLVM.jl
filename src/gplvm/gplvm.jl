@@ -4,10 +4,6 @@ function gplvm(X; iterations = 1, α = 1e-2, seed = 1, Q = 2, JITTER = 1e-6, VER
 
     rg = MersenneTwister(seed)
 
-    # auxiliary type for dispatching to appropriate method
-
-    modeltype = Val(:gplvm)
-
     # Figure our dimensions
 
     D, N = size(X)
@@ -58,7 +54,7 @@ function gplvm(X; iterations = 1, α = 1e-2, seed = 1, Q = 2, JITTER = 1e-6, VER
 
     # convenience functions
 
-    upk(p) = unpack(modeltype, p, D, N, Q)
+    upk(p) = unpack_gplvm(p, D, N, Q)
 
     objective(p) = -marginallikelihood(upk(p)...)
 
