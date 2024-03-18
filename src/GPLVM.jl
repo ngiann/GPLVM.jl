@@ -55,13 +55,13 @@ module GPLVM
     include("gplvmplus/inferlightcurve.jl")
     include("gplvmplus/infertestlatent_photo.jl")
     include("gplvmplus/numerically_VERIFY.jl")
-    include("gplvmplus/unpack.jl")
+    include("gplvmplus/unpack_gplvmplus.jl")
 
     # saved model for GPLVM₊
     include("loadbossmodel.jl")
 
    
-    export gplvmvar_pos,  gplvmvarnet
+    export gplvmplus,  gplvmvarnet
     export inferlatent, infertestlatent_photo, inferlightcurve, predictivesampler, predictgplvm, predictgplvmvarnet
     export loadbossmodel
 end

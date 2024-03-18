@@ -1,4 +1,4 @@
-function marginallikelihood_VERIFY(::Val{:gplvmvarnet_pos}, X, Z, θ, 𝛃, μ, Λroot, w, α, b; JITTER = JITTER, η=η)
+function marginallikelihood_VERIFY_gplvmplus(X, Z, θ, 𝛃, μ, Λroot, w, α, b; JITTER = JITTER, η=η)
 
     local N = size(Λroot, 1); @assert(size(μ, 2) == size(Z, 2) == size(X, 2) == N)
 

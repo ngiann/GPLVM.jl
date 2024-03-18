@@ -8,10 +8,6 @@ function gplvmplus(X, 𝛔 = missing; iterations = 1, H1 = 10, H2 = H1, seed = 1
 
     rg = MersenneTwister(seed)
 
-    # auxiliary type for dispatching to appropriate method
-
-    modeltype = Val(:gplvmvarnet_pos)
-
     # get dimensions of data
 
     D, N = size(X)
@@ -28,7 +24,7 @@ function gplvmplus(X, 𝛔 = missing; iterations = 1, H1 = 10, H2 = H1, seed = 1
     𝛃 = inverterrors(𝛔)
 
 
-    # define neural network that modeltypes variational parameters and its number of weights
+    # define neural network that variational parameters and its number of weights
 
     net = ThreeLayerNetwork(in = Q, H1 = H1, H2 = H2, out=D)
     
@@ -46,7 +42,7 @@ function gplvmplus(X, 𝛔 = missing; iterations = 1, H1 = 10, H2 = H1, seed = 1
 
     # define auxiliary unpack function
 
-    upk(p, 𝛃) = unpack(modeltype, p, 𝛃, D, N, net, Q)
+    upk(p, 𝛃) = unpack_gplvmplus(p, 𝛃, D, N, net, Q)
 
 
     #-----------------------------------------------------------------
@@ -55,7 +51,7 @@ function gplvmplus(X, 𝛔 = missing; iterations = 1, H1 = 10, H2 = H1, seed = 1
 
     opt = Optim.Options(iterations = iterations, show_trace = true, show_every = 10)
 
-    objective(p) = -marginallikelihood(modeltype, X, upk(p, 𝛃)...; JITTER = JITTER, η = η)
+    objective(p) = -marginallikelihood_gplvmplus(X, upk(p, 𝛃)...; JITTER = JITTER, η = η)
 
     function fg!(F, G, x)
             
@@ -76,11 +72,11 @@ function gplvmplus(X, 𝛔 = missing; iterations = 1, H1 = 10, H2 = H1, seed = 1
 
     @printf("Optimising %d number of parameters\n",length(p0))
 
-    VERIFY ? numerically_verify(modeltype, X, upk(p0, 𝛃)..., JITTER, η) : nothing
+    VERIFY ? numerically_verify_gplvmplus(X, upk(p0, 𝛃)..., JITTER, η) : nothing
     
     results = optimize(Optim.only_fg!(fg!), p0, ConjugateGradient(), opt) # alphaguess = InitialQuadratic(α0=1e-8)
 
-    VERIFY ? numerically_verify(modeltype, X, upk(results.minimizer, 𝛃)..., JITTER, η) : nothing
+    VERIFY ? numerically_verify_gplvmplus(X, upk(results.minimizer, 𝛃)..., JITTER, η) : nothing
 
     Zopt, θopt, 𝛃opt, μopt, Λrootopt, wopt, αopt, bopt = upk(results.minimizer, 𝛃)
    

@@ -1,4 +1,4 @@
-function unpack(::Val{:gplvmvarnet_pos}, p, ::Missing, D, N, net, Q)
+function unpack_gplvmplus(p, ::Missing, D, N, net, Q)
 
     nwts = ForwardNeuralNetworks.numweights(net)
     
@@ -30,7 +30,7 @@ end
 
 
 
-function unpack(::Val{:gplvmvarnet_pos}, p, 𝛃, D, N, net, Q)
+function unpack_gplvmplus(p, 𝛃, D, N, net, Q)
 
     nwts = ForwardNeuralNetworks.numweights(net)
     
