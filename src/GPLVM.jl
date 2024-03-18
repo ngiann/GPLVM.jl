@@ -18,6 +18,7 @@ module GPLVM
     include("common/expectation_latent_function_values.jl")
     include("common/expectation_of_sum_D_log_prior_zero_mean.jl")
     include("common/entropy.jl")
+    include("common/getfg!.jl")
 
     export toydata
 
@@ -56,6 +57,8 @@ module GPLVM
     include("gplvmplus/infertestlatent_photo.jl")
     include("gplvmplus/numerically_VERIFY.jl")
     include("gplvmplus/unpack_gplvmplus.jl")
+    include("gplvmplus/unpack_inferlatent_gplvmplus.jl")
+    include("gplvmplus/partial_objective.jl")
 
     # saved model for GPLVM₊
     include("loadbossmodel.jl")

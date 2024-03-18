@@ -34,73 +34,31 @@ function infertestlatent(X₊, 𝛃; μ = μ, Σ = Σ, K = K, η = η, Λroot = 
     
     inv_K_plus_Λ⁻¹ = aux_invert_K_plus_Λ⁻¹(K=K, Λroot=Λroot)
 
-    inv_K_mul_μᵀ = (K\μ')
+    inv_K_mul_μ = K\μ'
 
 
-    #--------------------------------------------------
-    function unpack(p)
-    #--------------------------------------------------
+    # convenient, shorter name
 
-        local MARK = 0
-
-        local Z₊ = reshape(p[MARK+1:MARK+Q*N₊], Q, N₊); MARK += Q*N₊
-        
-        local Lroot = Diagonal(p[MARK+1:MARK+N₊]); MARK += N₊
-        
-        @assert(MARK == length(p)) # all parameters must be used up
-
-        local ν  = net(w, Z₊)
-
-        return Z₊, ν, Lroot
-
-    end
-
+    unpack(p) = unpack_inferlatent_gplvmplus(p ; Q = Q, N₊ = N₊, w = w, net = net)
+    
 
     #--------------------------------------------------
     function objective(Z₊, ν, Lroot)
     #--------------------------------------------------
 
-        # Calculate cross-covariance matrix between test and training inputs
-        local K₊ = covariance(pairwise(SqEuclidean(), Z, Z₊), θ); @assert(size(K₊, 2) == N₊)
+        # return partial log-likelihood composed of sum of log-prior contribution, entropy, penalty on latent coordinates
 
-        # Calculate "self"-covariance matrix between test inputs
-        local K₊₊ = Symmetric(covariance(pairwise(SqEuclidean(), Z₊), θ) + JITTER*I); @assert(size(K₊₊, 1) == N₊)
-        
-        # calculate mean of "prior" of test latent function values
-        local m = (K₊'*inv_K_mul_μᵀ)'
-
-        # calculate covariance of "prior" of test latent function values
-        local C = K₊₊ - K₊'*inv_K_plus_Λ⁻¹*K₊; @assert(size(C, 1) == N₊); @assert(size(C, 2) == N₊);
-        
-        # calculate posterior covariance of test latent function values
-        local A = aux_invert_K⁻¹_plus_Λ(K=Symmetric(C+JITTER*I) , Λroot = Lroot)
-        
-        # log-prior contribution
-        local ℓ = expectation_of_sum_D_log_prior_zero_mean(;K = C, μ = (ν-m), Σ = A)
-           
-        # # code below implements line above - keep for numerical verification
-        # let
-        #     ℓ1 = 0
-        #     for d in 1:D
-        #         ℓ1 += logpdf(MvNormal(ν[d,:], Symmetric(C)), m[d,:]) - 0.5*tr(C\A)
-        #     end
-        #     @show ℓ1
-        # end
+        local ℓ, A = partial_objective(Z₊, ν, Lroot; Z = Z, θ = θ, JITTER = JITTER, η = η, D = D, inv_K_plus_Λ⁻¹ = inv_K_plus_Λ⁻¹, inv_K_mul_μ = inv_K_mul_μ)
 
         # log-likelihood contribution
-        
+
         local E, V = expectation_latent_function_values(;α = α, b = b, μ = ν, Σ = A)
 
         ℓ += -0.5*D*N₊*log(2π) + 0.5*sum(log.(𝛃))  -0.5*sum(𝛃 .* abs2.(myskip.(X₊ .- E))) - 1/2 * sum(𝛃 .* V)
 
-        # entropy contribution, note multiplication with D
-        ℓ += D*entropy(A)
-        
-        # penalty on latent - not in latex
-        ℓ += - 0.5*η*sum(abs2.(Z₊))
+        return ℓ
 
     end
-
 
 
     # initialise parameters randomly
@@ -114,6 +72,7 @@ function infertestlatent(X₊, 𝛃; μ = μ, Σ = Σ, K = K, η = η, Λroot = 
 
     end
 
+
     #-----------------------------------------------------------------
     # define options, loss and gradient to be passed to Optim.optimize
     #-----------------------------------------------------------------
@@ -122,17 +81,7 @@ function infertestlatent(X₊, 𝛃; μ = μ, Σ = Σ, K = K, η = η, Λroot = 
 
     objective(p) = -objective(unpack(p)...)
 
-    function fg!(F, G, x)
-            
-        value, ∇f = Zygote.withgradient(objective,x)
-
-        isnothing(G) || copyto!(G, ∇f[1])
-
-        isnothing(F) || return value
-
-        nothing
-
-    end
+    fg! = getfg!(objective)
 
 
     #-----------------------------------------------------------------
@@ -141,7 +90,7 @@ function infertestlatent(X₊, 𝛃; μ = μ, Σ = Σ, K = K, η = η, Λroot = 
 
     @printf("Optimising %d number of parameters\n",length(p0()))
 
-    solutions = [optimize(Optim.only_fg!(fg!), p0(), ConjugateGradient(), opt) for _ in 1:repeats] # alphaguess = InitialQuadratic(α0=1e-8)
+    solutions = [optimize(Optim.only_fg!(fg!), p0(), ConjugateGradient(), opt) for _ in 1:repeats]
 
     bestindex = argmin([s.minimizer for s in solutions])
 
