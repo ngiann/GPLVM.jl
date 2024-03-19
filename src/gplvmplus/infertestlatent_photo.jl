@@ -1,4 +1,4 @@
-infertestlatent_photo(U,B,S,R; iterations = 10, repeats = 1) = infertestlatent_photo(U, B, S; R..., iterations = iterations, repeats = repeats)
+infertestlatent_photo(U,B,S,R; iterations = 1000, repeats = 1) = infertestlatent_photo(U, B, S; R..., iterations = iterations, repeats = repeats)
 
 function infertestlatent_photo(U, B, S; μ = μ, Σ = Σ, K = K, η = η, Λroot = Λroot, net = net, w = w,
                              α = α, b = b, 𝛃 = 𝛃, Z = Z, θ = θ, JITTER = JITTER, rg = rg, iterations = iterations, repeats = repeats)
