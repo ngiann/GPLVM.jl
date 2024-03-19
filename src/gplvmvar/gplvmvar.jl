@@ -26,7 +26,7 @@ function gplvmvar(X, 𝛔 = missing; iterations = 1, η = 1e-2, seed = 1, Q = 2,
 
     # define neural network that modeltypes variational parameters and its number of weights
 
-    net = ThreeLayerNetwork(in = Q, H1 = H1, H2 = H2, out=D)
+    net = ThreeLayerNetwork(in = Q, H1 = H1, H2 = H2, out = D)
     
     nwts = ForwardNeuralNetworks.numweights(net)
     
@@ -36,7 +36,7 @@ function gplvmvar(X, 𝛔 = missing; iterations = 1, η = 1e-2, seed = 1, Q = 2,
     p0 = let 
         
         ismissing(𝛃) ? [randn(rg, Q*N)*0.2; randn(rg,3)*1; 0.1*randn(rg, nwts); randn(rg, N); randn(rg)] :
-        [randn(rg, Q*N)*0.2; randn(rg,2)*1; 0.1*randn(rg, nwts); randn(rg, N); randn(rg)]
+                       [randn(rg, Q*N)*0.2; randn(rg,2)*1; 0.1*randn(rg, nwts); randn(rg, N); randn(rg)]
         
     end
     
@@ -53,21 +53,11 @@ function gplvmvar(X, 𝛔 = missing; iterations = 1, η = 1e-2, seed = 1, Q = 2,
 
     objective(p) = -marginallikelihood_gplvmvar(X, upk(p, 𝛃)...; JITTER = JITTER, η = η)
     
-    function fg!(F, G, x)
-        
-        value, ∇f = Zygote.withgradient(objective, x)
-        
-        isnothing(G) || copyto!(G, ∇f[1])
-        
-        isnothing(F) || return value
-        
-        nothing
-        
-    end
+    fg! = getfg!(objective)
 
     # set options for optimiser
 
-    opt = Optim.Options(iterations = iterations, show_trace = true, show_every = 1)
+    opt = Optim.Options(iterations = iterations, show_trace = true, show_every = 10)
 
     # numerically verify before optimisation
 
@@ -90,7 +80,7 @@ function gplvmvar(X, 𝛔 = missing; iterations = 1, η = 1e-2, seed = 1, Q = 2,
     # optimised variational parameters.
     #---------------------------------------------------------------------------
 
-    Zopt, θopt, 𝛃opt, μopt, Λrootopt, bopt = upk(results.minimizer, 𝛃)
+    Zopt, θopt, 𝛃opt, μopt, Λrootopt, _wopt_, bopt = upk(results.minimizer, 𝛃)
  
     Kopt = let
 
