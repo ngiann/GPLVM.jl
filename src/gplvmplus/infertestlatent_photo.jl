@@ -54,7 +54,7 @@ function infertestlatent_photo(U, B, S; μ = μ, Σ = Σ, K = K, η = η, Λroot
             aux_V = sum( B[j,:].^2 .* (exp.(2*α*ν[:,t] .+ (2*α)^2*A[t,t] / 2 .+ 2b) .- (exp.(α*ν[:,t]   .+     α^2*A[t,t] / 2 .+  b)).^2) )
 
         
-            ℓ += (1 / S[j,t]^2) * aux_V
+            ℓ += -(0.5 / S[j,t]^2) * aux_V
 
         end
 
