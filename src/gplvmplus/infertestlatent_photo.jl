@@ -63,8 +63,11 @@ function infertestlatent_photo(U, B, S; μ = μ, Σ = Σ, K = K, η = η, Λroot
     end
 
 
+    #-----------------------------------------------------------------
+    # initialise parameters by picking random coordinate and random
+    # values for the sqrt diagonal parametrising the posterior cov
+    #-----------------------------------------------------------------
 
-    # initialise parameters randomly
     @assert(N₊ == 1)
 
     function p0()
