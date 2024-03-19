@@ -111,7 +111,7 @@ function inferlightcurve_(tobs, U, B, S; μ = μ, Σ = Σ, K = K, η = η, Λroo
             end
         
 
-            ℓ +=  (1 / (2*S[j,t]^2)) * Vterm
+            ℓ +=  - (1 / (2*S[j,t]^2)) * Vterm
 
         end
 
