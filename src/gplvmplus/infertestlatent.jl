@@ -2,7 +2,7 @@
 
 # 1. At testing no error measurements provided: assume at training GPLVM₊ precision was optimised.
 
-function inferlatent(X₊, R; iterations = 10, repeats=1) 
+function inferlatent(X₊, R; iterations = 1000, repeats=1) 
     
     @assert isa(R[:𝛃], FillArrays.AbstractFillMatrix)
 
@@ -61,18 +61,6 @@ function infertestlatent(X₊, 𝛃; μ = μ, Σ = Σ, K = K, η = η, Λroot = 
     end
 
 
-    # initialise parameters randomly
-    @assert(N₊ == 1)
-
-    function p0()
-
-        local luckyindex = ceil(Int, rand(rg)*(size(Z,2))) 
-        
-        [Z[:,luckyindex]; randn(rg, N₊)]
-
-    end
-
-
     #-----------------------------------------------------------------
     # define options, loss and gradient to be passed to Optim.optimize
     #-----------------------------------------------------------------
@@ -85,6 +73,24 @@ function infertestlatent(X₊, 𝛃; μ = μ, Σ = Σ, K = K, η = η, Λroot = 
 
 
     #-----------------------------------------------------------------
+    # initialise parameters by starting from randomly picked latent
+    # coordinate and refining it initially with robust NelderMead
+    #-----------------------------------------------------------------
+
+    @assert(N₊ == 1)
+
+    function p0()
+
+        local luckyindex = ceil(Int, rand(rg)*(size(Z,2))) 
+
+        local initopt = Optim.Options(iterations = 1000, show_trace = false, show_every = 1)
+        
+        optimize(objective, [Z[:,luckyindex]; randn(rg, N₊)], NelderMead(), initopt).minimizer
+
+    end
+
+
+    #-----------------------------------------------------------------
     # Carry out actual optimisation and obtain optimised parameters
     #-----------------------------------------------------------------
 
@@ -92,7 +98,7 @@ function infertestlatent(X₊, 𝛃; μ = μ, Σ = Σ, K = K, η = η, Λroot = 
 
     solutions = [optimize(Optim.only_fg!(fg!), p0(), ConjugateGradient(), opt) for _ in 1:repeats]
 
-    bestindex = argmin([s.minimizer for s in solutions])
+    bestindex = argmin([s.minimum for s in solutions])
 
     Zopt, νopt, Lroot = unpack(solutions[bestindex].minimizer)
    
