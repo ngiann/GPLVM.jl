@@ -50,7 +50,7 @@ function infertestlatent_photo(U, B, S; μ = μ, Σ = Σ, K = K, η = η, Λroot
             #     aux_tr += B[j,d]^2 * V(a = α, μ = ν[d,t], σ = sqrt(A[t,t]),b = b)
             # end
 
-            # line below implements commented-out code above
+            # line below implements commented-out code above. Use property V[X] = E[X²] - (E[X])²
             aux_V = sum( B[j,:].^2 .* (exp.(2*α*ν[:,t] .+ (2*α)^2*A[t,t] / 2 .+ 2b) .- (exp.(α*ν[:,t]   .+     α^2*A[t,t] / 2 .+  b)).^2) )
 
         
