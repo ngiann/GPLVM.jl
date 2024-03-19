@@ -94,7 +94,7 @@ function infertestlatent_photo(U, B, S; μ = μ, Σ = Σ, K = K, η = η, Λroot
 
     solutions = [optimize(Optim.only_fg!(fg!), p0(), ConjugateGradient(), opt) for _ in 1:repeats] # alphaguess = InitialQuadratic(α0=1e-8)
 
-    bestindex = argmin([s.minimizer for s in solutions])
+    bestindex = argmin([s.minimum for s in solutions])
 
     Zopt, νopt, Lroot = unpack(solutions[bestindex].minimizer)
     
