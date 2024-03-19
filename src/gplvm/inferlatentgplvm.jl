@@ -36,9 +36,13 @@ function inferlatentgplvm(ytest, R; iterations = 100, repeats = 1)
         
         luckyindex = ceil(Int, rand() * size(R[:Z],2)) # pick a random coordinate as starting point for optimisation
      
-        init = optimize(objective, R[:Z][:,luckyindex], NelderMead(), opt).minimizer
+        bnd = (minimum(vec(R[:Z])), maximum(vec(R[:Z])))
 
-        optimize(objective, init, ConjugateGradient(), opt, autodiff=:forward)
+        init = best_candidate(bboptimize(objective; Method=:random_search, SearchRange = bnd, NumDimensions = Q, MaxFuncEvals = 100))
+ 
+        optimize(objective, init, NelderMead(), opt)
+
+        # optimize(objective, init, NelderMead(), opt)
 
     end
 
