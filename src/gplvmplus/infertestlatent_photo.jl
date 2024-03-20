@@ -99,7 +99,7 @@ function infertestlatent_photo(U, B, S; μ = μ, Σ = Σ, K = K, η = η, Λroot
 
     bestindex = argmin([s.minimum for s in solutions])
 
-    Zopt, νopt, Lroot = unpack(solutions[bestindex].minimizer)
+    Zopt, _νopt, _Lroot = unpack(solutions[bestindex].minimizer)
     
     return Zopt
     
