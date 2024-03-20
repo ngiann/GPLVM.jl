@@ -1,39 +1,65 @@
-function inferlatentgplvmvar(ytest, R; iterations = 1000, repeats = 10) 
+function inferlatentgplvmvar(X₊, R; iterations = 1000, repeats = 10) 
 
-    Q = length(R[:Z][:,1]) # dimension of latent space
-
-    CountObs = length(ytest) - count(ismissing, ytest)
+    @show Q  = length(R[:Z][:,1]) # dimension of latent space
+    @show N₊ = 1
+    @show D  = length(X₊)
     
+    # assign relevant quantities
 
-    function loss(x)
+    K      = R[:K]
+    Λroot  = R[:Λroot]
+    b      = R[:b]
+    μ      = R[:μ]
+    # Σ      = R[:Σ]
+    η      = R[:η]
+    net    = R[:net]
+    w      = R[:w]
+    Z      = R[:Z]
+    θ      = R[:θ]
+    JITTER = R[:JITTER]
+    β      = R[:𝛃][1]
 
-        μpred, Σpred = predictgplvmvar(reshape(x,Q,1), R)
+    rg = MersenneTwister(1)
 
-        return -0.5*CountObs*log(2π) - 0.5*(sum(myskip.(abs2.(((ytest - vec(μpred)))))))/only(Σpred) - 0.5*CountObs*log(only(Σpred))
 
-        # # code below implements line above - keep for verification
+    countObs = count(x->~ismissing(x), X₊)
+    
+    # pre-calculate
+    
+    inv_K_plus_Λ⁻¹ = aux_invert_K_plus_Λ⁻¹(K=K, Λroot=Λroot)
 
-        # ℓ = zero(eltype(x))
-        # for (m,y) in zip(μpred,ytest)
-        #     if ~ismissing(y)
-        #         ℓ += logpdf(Normal(m, sqrt(only(Σpred))), y)
-        #     end  
-        # end
-        # ℓ
+    inv_K_mul_μ = K\μ'
+
+    # use the same unpacking function like GPLVM₊
+
+    unpack(p) = unpack_inferlatent_gplvmplus(p ; Q = Q, N₊ = N₊, w = w, net = net)
+
+    function loss(Z₊, ν, Lroot)
+        
+        # use same function like GPLVM₊
+        # return partial log-likelihood composed of sum of log-prior contribution, entropy, penalty on latent coordinates
+
+        local ℓ, A = partial_objective(Z₊, ν, Lroot; Z = Z, θ = θ, JITTER = JITTER, η = η, D = D, inv_K_plus_Λ⁻¹ = inv_K_plus_Λ⁻¹, inv_K_mul_μ = inv_K_mul_μ)
+
+        # log-likelihood contribution
+
+        ℓ += - 0.5*β*sum(abs2.(myskip.((X₊.-ν.-b)))) + 0.5*countObs*log(β) - 0.5*countObs*log(2π) - 0.5*β*D*tr(A)
+
+        return ℓ
 
     end
 
     
     opt = Optim.Options(show_trace = true, show_every = 1, iterations = iterations)
 
-    objective(p) = -loss(p)
+    objective(p) = -loss(unpack(p)...)
 
     
     function getsolution()
         
-        luckyindex = ceil(Int, rand() * size(R[:Z],2)) # pick a random coordinate as starting point for optimisation
+        luckyindex = ceil(Int, rand(rg) * size(R[:Z],2)) # pick a random coordinate as starting point for optimisation
      
-        init = optimize(objective, R[:Z][:,luckyindex], NelderMead(), opt).minimizer
+        init = optimize(objective, [Z[:,luckyindex]; randn(rg, N₊)], NelderMead(), opt).minimizer
 
         optimize(objective, init, LBFGS(), opt, autodiff=:forward)
 
@@ -44,6 +70,7 @@ function inferlatentgplvmvar(ytest, R; iterations = 1000, repeats = 10)
 
     bestindex = argmin([s.minimum for s in solutions])
 
-    return solutions[bestindex].minimizer
+    
+    return unpack(solutions[bestindex].minimizer)[1]
 
 end
