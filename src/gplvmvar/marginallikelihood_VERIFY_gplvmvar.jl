@@ -1,4 +1,4 @@
-function marginallikelihood_VERIFY(::Val{:gplvmvarnet}, X, Z, θ, 𝛃, μ, Λroot, b; JITTER = JITTER, η = η)
+function marginallikelihood_VERIFY_gplvmvar(X, Z, θ, 𝛃, μ, Λroot, w, b; JITTER = JITTER, η = η)
     
     # sort out dimensions
 
@@ -25,7 +25,7 @@ function marginallikelihood_VERIFY(::Val{:gplvmvarnet}, X, Z, θ, 𝛃, μ, Λro
 
     for d in 1:D
         
-        ℓ += logpdf(MvNormal(zeros(N) .+ b, K), μ[d,:]) - 0.5*tr(K\Σ)
+        ℓ += logpdf(MvNormal(zeros(N), K), μ[d,:]) - 0.5*tr(K\Σ)
 
     end
     
@@ -36,7 +36,7 @@ function marginallikelihood_VERIFY(::Val{:gplvmvarnet}, X, Z, θ, 𝛃, μ, Λro
         
         for n in 1:N
 
-            ℓ += logpdf(Normal(μ[d,n], 1/sqrt(𝛃[d,n])), X[d,n])
+            ℓ += logpdf(Normal(μ[d,n] + b, 1/sqrt(𝛃[d,n])), X[d,n])
 
         end
 
@@ -50,7 +50,7 @@ function marginallikelihood_VERIFY(::Val{:gplvmvarnet}, X, Z, θ, 𝛃, μ, Λro
     ℓ += D * Distributions.entropy(MvNormal(zeros(N), Σ))
         
     
-    return ℓ - 0.5*η*sum(abs2.(Z)) # penalty on latent coordinates
+    return ℓ - 0.5*η*sum(abs2.(Z)) - 0.5*η*sum(abs2.(w))# penalty on latent coordinates and network weights
     
 end
     

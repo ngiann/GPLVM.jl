@@ -1,4 +1,4 @@
-function unpack(::Val{:gplvm}, p, D, N, Q)
+function unpack_gplvm(p, D, N, Q)
 
     @assert(length(p) == Q*N + 2 + 1 + 1)
 

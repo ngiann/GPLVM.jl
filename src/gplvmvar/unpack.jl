@@ -1,4 +1,4 @@
-function unpack(::Val{:gplvmvarnet}, p, ::Missing, D, N, net, Q)
+function unpack_gplvmvar(p, ::Missing, D, N, net, Q)
 
     nwts = ForwardNeuralNetworks.numweights(net)
 
@@ -22,12 +22,12 @@ function unpack(::Val{:gplvmvarnet}, p, ::Missing, D, N, net, Q)
 
     μ = net(w, Z)
 
-    return Z, θ, Fill(β, D, N), μ, Λroot, b
+    return Z, θ, Fill(β, D, N), μ, Λroot, w, b
 
 end
 
 
-function unpack(::Val{:gplvmvarnet}, p, 𝛃, D, N, net, Q)
+function unpack_gplvmvar(p, 𝛃, D, N, net, Q)
 
     nwts = ForwardNeuralNetworks.numweights(net)
 
@@ -49,6 +49,6 @@ function unpack(::Val{:gplvmvarnet}, p, 𝛃, D, N, net, Q)
 
     μ = net(w, Z)
 
-    return Z, θ, 𝛃, μ, Λroot, b
+    return Z, θ, 𝛃, μ, Λroot, w, b
 
 end

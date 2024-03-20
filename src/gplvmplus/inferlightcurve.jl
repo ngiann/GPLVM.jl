@@ -43,7 +43,7 @@ function inferlightcurve_(tobs, U, B, S; μ = μ, Σ = Σ, K = K, η = η, Λroo
 
     end
 
-count = 0; ℓbest = -Inf; zbest = zeros(Q, T)
+    
 
     #--------------------------------------------------
     function objective(Z₊, ν, Lroot, c, wrbf)
@@ -111,7 +111,7 @@ count = 0; ℓbest = -Inf; zbest = zeros(Q, T)
             end
         
 
-            ℓ +=  (1 / (2*S[j,t]^2)) * Vterm
+            ℓ +=  - (1 / (2*S[j,t]^2)) * Vterm
 
         end
 

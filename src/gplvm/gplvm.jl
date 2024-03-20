@@ -1,18 +1,14 @@
-function gplvm(X, 𝛔=zeros(size(X)); iterations = 1, α = 1e-2, seed = 1, Q = 2, JITTER = 1e-6, VERIFY = false)
+function gplvm(X; iterations = 1, α = 1e-2, seed = 1, Q = 2, JITTER = 1e-6, VERIFY = false)
 
     # Fix random number generator for reproducibility
 
     rg = MersenneTwister(seed)
 
-    # auxiliary type for dispatching to appropriate method
-
-    modeltype = Val(:gplvm)
-
     # Figure our dimensions
 
     D, N = size(X)
 
-    𝛔² = 𝛔.^2
+    idx = [findall(x->~isinf(x), X[d,:]) for d in 1:D]
     
     # Report message
 
@@ -21,8 +17,6 @@ function gplvm(X, 𝛔=zeros(size(X)); iterations = 1, α = 1e-2, seed = 1, Q = 
     @printf("There are %d number of dimensions\n", D)
     @printf("Q=%d\n", Q)
 
-
-        
 
     #-------------------------------------------
     function marginallikelihood(Z, θ, σ², b)
@@ -38,16 +32,17 @@ function gplvm(X, 𝛔=zeros(size(X)); iterations = 1, α = 1e-2, seed = 1, Q = 
 
         for d in 1:D
 
-            Xd  = @view X[d,:]
-            𝛔²d = @view 𝛔²[d,:]
+            Xd  = @views X[d,idx[d]]
+            
+            Kpartition = @views K[idx[d], idx[d]]
 
-            Kc = cholesky(K + Diagonal(𝛔²d) + σ²*I + JITTER*I).L
+            Kc = cholesky(Kpartition + σ²*I + JITTER*I).L
 
-            ℓ += -0.5*sum(abs2.(Kc\(Xd.-b))) - 0.5*2*sum(log.(diag(Kc))) - 0.5*N*log(2π)
+            ℓ += -0.5*sum(abs2.(Kc\(Xd.-b))) - 0.5*2*sum(log.(diag(Kc))) - 0.5*length(idx[d])*log(2π)
             
             # let
-            #     tmp1 = logpdf(MvNormal(zeros(N).+b, K + Diagonal(𝛔²[d,:]) + JITTER*I), X[d,:])
-            #     tmp2 = -0.5*sum(abs2.(Kc\(Xd.-b))) - 0.5*2*sum(log.(diag(Kc))) - 0.5*N*log(2π)
+            #     tmp1 = logpdf(MvNormal(zeros(length(idx[d])).+b, Kpartition + σ²*I + JITTER*I), X[d,idx[d]])
+            #     tmp2 = -0.5*sum(abs2.(Kc\(Xd.-b))) - 0.5*2*sum(log.(diag(Kc))) - 0.5*length(idx[d])*log(2π)
             #     @show tmp1, tmp2, tmp1-tmp2
             # end
         end
@@ -59,23 +54,14 @@ function gplvm(X, 𝛔=zeros(size(X)); iterations = 1, α = 1e-2, seed = 1, Q = 
 
     # convenience functions
 
-    upk(p) = unpack(modeltype, p, D, N, Q)
+    upk(p) = unpack_gplvm(p, D, N, Q)
 
     objective(p) = -marginallikelihood(upk(p)...)
 
     
     # Initialise parameters
 
-    paraminit = let 
-        
-        local p0 = [randn(rg, Q*N)*0.1; randn(rg,4)*3]
- 
-        # local nmopt = Optim.Options(iterations = 500, show_trace = true, show_every = 1)
-
-        # optimize(objective, p0, NelderMead(), nmopt).minimizer
-
-    end
-
+    paraminit() = [randn(rg, Q*N)*0.1; randn(rg,4)*3]
 
     # setup optimiser, run optimisation and retrieve optimised parameters
 
@@ -93,11 +79,24 @@ function gplvm(X, 𝛔=zeros(size(X)); iterations = 1, α = 1e-2, seed = 1, Q = 
 
     end
 
-    results = optimize(Optim.only_fg!(fg!), paraminit, ConjugateGradient(), opt)
+    
+    initialsolutions = [paraminit() for _ in 1:10]
+
+    bestindex = argmin(map(objective, initialsolutions))
+
+    results = optimize(Optim.only_fg!(fg!), initialsolutions[bestindex], LBFGS(), opt)
 
     Zopt, θopt, σ²opt, bopt = upk(results.minimizer)
 
 
-    return (Z = Zopt, θ = θopt, 𝛔² = 𝛔²opt, noisy_K_chol = noisy_K_chol_opt, b = bopt, JITTER = JITTER)
+    Kopt = let
+        
+        local D² = pairwise(SqEuclidean(), Zopt)
+
+        Symmetric(covariance(D², θopt) + σ²opt*I + JITTER*I)
+
+    end
+
+    return (Z = Zopt, X = X, θ = θopt, σ² = σ²opt,  b = bopt, JITTER = JITTER, idx = idx, K = Kopt)
 
 end
