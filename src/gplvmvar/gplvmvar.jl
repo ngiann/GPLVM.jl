@@ -80,16 +80,19 @@ function gplvmvar(X, 𝛔 = missing; iterations = 1, η = 1e-2, seed = 1, Q = 2,
     # optimised variational parameters.
     #---------------------------------------------------------------------------
 
-    Zopt, θopt, 𝛃opt, μopt, Λrootopt, _wopt_, bopt = upk(results.minimizer, 𝛃)
+    Zopt, θopt, 𝛃opt, μopt, Λrootopt, wopt, bopt = upk(results.minimizer, 𝛃)
  
-    Kopt = let
+    Kopt, Σopt = let
 
         local D² = pairwise(SqEuclidean(), Zopt)
 
-        Symmetric(covariance(D², θopt) + JITTER*I)
+        local K = Symmetric(covariance(D², θopt) + JITTER*I)
+    
+        local Σ  = aux_invert_K⁻¹_plus_Λ(;K = K, Λroot = Λrootopt) + JITTER*I
 
+        K, Σ
     end
 
-    return (Z = Zopt, θ = θopt, 𝛃 = 𝛃opt, μ = μopt, Λroot = Λrootopt, K = Kopt, b = bopt, JITTER = JITTER)
+    return (w = wopt, net = net, η = η, Σ = Σopt, Z = Zopt, θ = θopt, 𝛃 = 𝛃opt, μ = μopt, Λroot = Λrootopt, K = Kopt, b = bopt, JITTER = JITTER)
 
 end
