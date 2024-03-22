@@ -5,3 +5,11 @@ lazy = true
     [[bossspectralmodel.download]]
     sha256 = "6b0dfd6e23f917542311c14c19d3a0e968e40fd598db4c21ed73c17502d391c0"
     url = "https://www.dropbox.com/scl/fi/xppwu70cacqxhbbeh9h31/bossspectramodel.tar.gz?rlkey=lxb1xgvi1qgpbwj0w0fwhur42&dl=0"
+
+[bossspectralmodel_gplvmvar]
+git-tree-sha1 = "9e3df8bef8f353c67437f03d2f44111ce0a8c362"
+lazy = true
+
+    [[bossspectralmodel_gplvmvar.download]]
+    sha256 = "da1c5f65228db3f2067c36b9cb209de3df33d0c3fde713b3a5302944f09417f9"
+    url = "https://www.dropbox.com/scl/fi/eoes22o54hdhgmsdug234/bossspectramodel_gplvm.tar.gz?rlkey=apyvwu1iaar8u9ctigrs60d0x&dl=0"
