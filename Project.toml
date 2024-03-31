@@ -1,7 +1,7 @@
 name = "GPLVM"
 uuid = "d42837a9-6870-44f6-82a5-99dcce1f8faa"
 authors = ["Nikos Gianniotis <ngiann@gmail.com> and contributors"]
-version = "1.0.5-DEV"
+version = "1.0.6-DEV"
 
 [deps]
 Artifacts = "56f22d72-fd6d-98f1-02f0-08ddc0907c33"
@@ -11,7 +11,6 @@ Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 ExponentialExpectations = "514699ec-cad0-4573-b799-e90939df45ca"
 FillArrays = "1a297f60-69ca-5386-bcde-b61e274b549b"
 ForwardNeuralNetworks = "41bbd1a4-0eca-4bcd-b6b1-8656d032eaeb"
-GPLVMplus_experiments = "29452966-554d-45f8-8f51-f16ef1f654f2"
 JLD2 = "033835bb-8acc-5ee8-8aae-3f567f8a3819"
 LazyArtifacts = "4af54fe1-eca0-43a8-85a7-787d91b784e3"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
