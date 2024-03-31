@@ -39,8 +39,9 @@ module GPLVM
     include("gplvmvar/numerically_VERIFY_gplvmvar.jl")
     include("gplvmvar/unpack.jl")
     include("gplvmvar/inferlatentgplvmvar.jl")
+    include("gplvmvar/inferlatentgplvmvar_photo.jl")
     
-    export predictgplvmvar, inferlatentgplvmvar
+    export predictgplvmvar, inferlatentgplvmvar, inferlatentgplvmvar_photo
     
     # warped GPLVM
     include("warpedgplvm.jl")
