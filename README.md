@@ -37,3 +37,16 @@ pcolor(reshape(mpred2,26,26))
 ```
 
 # Recover spectrum from measurements
+
+```
+using Revise, GPLVM, PyPlot, Statistics, GPLVMplus_experiments, PPCASpectra
+
+R2 = loadbossmodel_gplvmplus();
+R3 = loadbossmodel_gplvmvar();
+
+Y = let
+    X = loadoriginalspectra();
+    replace(X[3000:5000,1:2:end]', Inf=>missing) # unseen data
+end
+
+```
