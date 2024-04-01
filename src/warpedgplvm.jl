@@ -7,7 +7,8 @@ function warpedgplvm(X; iterations = 1, α = 1e-2, seed = 1, Q = 2, JITTER = 1e-
     
     N = size(X, 2)
     D = size(X, 1)
-
+    
+    idx = [findall(x->~isinf(x), X[d,:]) for d in 1:D]
     
     @printf("Running warpedgplvm.\n")
     @printf("There are %d number of data items\n", N)
@@ -19,7 +20,7 @@ function warpedgplvm(X; iterations = 1, α = 1e-2, seed = 1, Q = 2, JITTER = 1e-
     function unpack(p)
     #-------------------------------------------
 
-        @assert(length(p) == Q*N + 2 + 3)
+        @assert(length(p) == Q*N + 4)
 
         local MARK = 0
 
@@ -29,43 +30,58 @@ function warpedgplvm(X; iterations = 1, α = 1e-2, seed = 1, Q = 2, JITTER = 1e-
 
         local σ² = exp(p[MARK+1]); MARK += 1
 
-        local a = exp(p[MARK+1]); MARK += 1
-
         local b = p[MARK+1]; MARK += 1
 
         @assert(MARK == length(p))
 
-        return Z, θ, σ², a, b
+        return Z, θ, σ², b
 
     end
 
 
     #-------------------------------------------
-    function noisykernelmatrix_chol(Z, θ, σ²)
+    function warp(x)
+    #-------------------------------------------
+
+        log(x)
+
+    end
+
+
+    #-------------------------------------------
+    function calculateK(Z, θ, σ²)
     #-------------------------------------------
 
         local D² = pairwise(SqEuclidean(), Z)
 
-        local K  = Symmetric(covariance(D², θ))
-
-        cholesky(Symmetric(K + (σ²+JITTER)*I)).L
+        Symmetric(covariance(D², θ) + σ²*I + JITTER*I)
 
     end
-        
 
     #-------------------------------------------
-    function marginallikelihood(Z, θ, σ², a, b)
+    function marginallikelihood(Z, θ, σ², b)
     #-------------------------------------------
 
-        # Implements eq. (6) in paper "Warped Gaussian Processes"
-        # The function f(⋅) we use here is f(⋅) = log(⋅) + b
+        local K = calculateK(Z, θ, σ²)
 
-        local U = noisykernelmatrix_chol(Z, θ, σ²)
+        local ℓ = zero(eltype(Z))
 
-        local ℓ = D * (-0.5*N*log(2π)  - 0.5*2*sum(log.(diag(U)))) -0.5*sum(abs2.((U\(b .+ a*log.(X')))))
+        for d in 1:D
 
-        ℓ +=  sum(log.(a ./ X))
+            Xd = X[d,idx[d]]
             
+            Kpartition = K[idx[d], idx[d]]
+
+            Kc = cholesky(Kpartition).L
+
+            local z = warp.(Xd)
+          
+            ℓ += -0.5*sum(abs2.(Kc\(z.-b))) - 0.5*2*sum(log.(diag(Kc))) - 0.5*length(idx[d])*log(2π)
+            
+            # ℓ += sum(log.(1 ./ Xd)) # this is constant and can be commented out
+
+        end
+
         return ℓ - 0.5*α*sum(abs2.(Z))
 
     end
@@ -107,20 +123,18 @@ function warpedgplvm(X; iterations = 1, α = 1e-2, seed = 1, Q = 2, JITTER = 1e-
 
     objective(p) = -marginallikelihood(unpack(p)...)
 
-    paraminit = [randn(rg, Q*N)*0.1; randn(rg,5)*3]
+    paraminit = [randn(rg, Q*N)*0.1; randn(rg,4)*0.1]
     
-
     opt = Optim.Options(iterations = iterations, show_trace = true, show_every = 1)
 
+    fg! = getfg!(objective)
 
-    gradhelper!(s, p) = copyto!(s, Zygote.gradient(objective, p)[1])
+    results = optimize(Optim.only_fg!(fg!), paraminit, ConjugateGradient(), opt)
 
-    results = optimize(objective, gradhelper!, paraminit, LBFGS(), opt)
+    Zopt, θopt, σ²opt, bopt = unpack(results.minimizer)# 
 
-    Zopt, θopt, σ²opt, aopt, bopt = unpack(results.minimizer)
+    Kopt = calculateK(Zopt, θopt, σ²opt)
 
-    noisy_K_chol_opt = noisykernelmatrix_chol(Zopt, θopt, σ²opt)
-    
-    return (Z = Zopt, θ = θopt, β = 1/σ²opt, noisy_K_chol = noisy_K_chol_opt,a = aopt, b = bopt, JITTER = JITTER)
+    return (X = X, Z = Zopt, b = bopt, θ = θopt, σ² = σ²opt, K = Kopt, JITTER = JITTER, idx = idx, warp = warp)
 
 end

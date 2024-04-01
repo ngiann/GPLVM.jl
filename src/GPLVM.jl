@@ -45,8 +45,9 @@ module GPLVM
     
     # warped GPLVM
     include("warpedgplvm.jl")
+    include("predictwarpedgplvm.jl")
 
-    export warpedgplvm
+    export warpedgplvm, predictwarpedgplvm
     
     # GPLVM₊
     include("gplvmplus/gplvmplus.jl")
