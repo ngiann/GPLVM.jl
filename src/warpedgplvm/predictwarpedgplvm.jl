@@ -54,6 +54,6 @@ function predictwarpedgplvm(xtest, Y, X, θ, b, K, idx, warp; JITTER = 0.0)
     end
           
 
-    return reduce(hcat,μpred), reduce(hcat, Σpred)
+    return reduce(hcat,μpred), Σpred
 
 end

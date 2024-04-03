@@ -44,10 +44,11 @@ module GPLVM
     export predictgplvmvar, inferlatentgplvmvar, inferlatentgplvmvar_photo
     
     # warped GPLVM
-    include("warpedgplvm.jl")
-    include("predictwarpedgplvm.jl")
+    include("warpedgplvm/warpedgplvm.jl")
+    include("warpedgplvm/predictwarpedgplvm.jl")
+    include("warpedgplvm/inferlatentwarpedgplvm.jl")
 
-    export warpedgplvm, predictwarpedgplvm
+    export warpedgplvm, predictwarpedgplvm, inferlatentwarpedgplvm
     
     # GPLVM₊
     include("gplvmplus/gplvmplus.jl")
