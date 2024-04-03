@@ -74,9 +74,9 @@ function warpedgplvm(X; iterations = 1, α = 1e-2, seed = 1, Q = 2, JITTER = 1e-
 
             Kc = cholesky(Kpartition).L
 
-            local z = warp.(Xd)
+            local xd = warp.(Xd)
           
-            ℓ += -0.5*sum(abs2.(Kc\(z.-b))) - 0.5*2*sum(log.(diag(Kc))) - 0.5*length(idx[d])*log(2π)
+            ℓ += -0.5*sum(abs2.(Kc\(xd.-b))) - 0.5*2*sum(log.(diag(Kc))) - 0.5*length(idx[d])*log(2π)
             
             # ℓ += sum(log.(1 ./ Xd)) # this is constant and can be commented out
 
