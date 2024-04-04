@@ -88,6 +88,37 @@ function warpedgplvm(X; iterations = 1, α = 1e-2, seed = 1, Q = 2, JITTER = 1e-
 
 
     #-------------------------------------------
+    function marginallikelihood_d(d, K, b)
+    #-------------------------------------------
+
+        local Xd = X[d,idx[d]]
+            
+        local Kpartition = K[idx[d], idx[d]]
+
+        local Kc = cholesky(Kpartition).L
+
+        local xd = warp.(Xd)
+            
+        -0.5*sum(abs2.(Kc\(xd.-b))) - 0.5*2*sum(log.(diag(Kc))) - 0.5*length(idx[d])*log(2π)
+      
+    end
+
+    #-------------------------------------------
+    function parallel_marginallikelihood(Z, θ, σ², b)
+    #-------------------------------------------
+    
+        local K = calculateK(Z, θ, σ²)
+
+        local aux(d) = marginallikelihood_d(d, K, b)
+
+        sum(Transducers.foldxt(+, Map(aux),  1:D))
+
+    end
+
+   
+
+    
+    #-------------------------------------------
     function marginallikelihood_verify(Z, θ, σ²,a,b)
     #-------------------------------------------
     
@@ -121,7 +152,7 @@ function warpedgplvm(X; iterations = 1, α = 1e-2, seed = 1, Q = 2, JITTER = 1e-
     end
 
 
-    objective(p) = -marginallikelihood(unpack(p)...)
+    objective(p) = -parallel_marginallikelihood(unpack(p)...)
 
     paraminit = [randn(rg, Q*N)*0.1; randn(rg,4)*0.1]
     

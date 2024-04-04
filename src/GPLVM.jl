@@ -7,6 +7,7 @@ module GPLVM
     using Printf, PyPlot
     using JLD2
     using Artifacts, LazyArtifacts
+    using Transducers
     
     # common
     include("common/covariance.jl" )
