@@ -65,11 +65,11 @@ function infertestlatent(X₊, 𝛃; μ = μ, Σ = Σ, K = K, η = η, Λroot = 
     # define options, loss and gradient to be passed to Optim.optimize
     #-----------------------------------------------------------------
 
-    opt = Optim.Options(iterations = iterations, show_trace = false, show_every = 1)
+    opt = Optim.Options(iterations = iterations, show_trace = true, show_every = 1)
 
     objective(p) = -objective(unpack(p)...)
 
-    fg! = getfg!(objective)
+    # fg! = getfg!(objective)
 
 
     #-----------------------------------------------------------------
@@ -83,7 +83,7 @@ function infertestlatent(X₊, 𝛃; μ = μ, Σ = Σ, K = K, η = η, Λroot = 
 
         local luckyindex = ceil(Int, rand(rg)*(size(Z,2))) 
 
-        local initopt = Optim.Options(iterations = 1000, show_trace = false, show_every = 1)
+        local initopt = Optim.Options(iterations = iterations, show_trace = true, show_every = 1)
         
         optimize(objective, [Z[:,luckyindex]; randn(rg, N₊)], NelderMead(), initopt).minimizer
 
@@ -94,11 +94,13 @@ function infertestlatent(X₊, 𝛃; μ = μ, Σ = Σ, K = K, η = η, Λroot = 
     # Carry out actual optimisation and obtain optimised parameters
     #-----------------------------------------------------------------
 
-    @printf("Optimising %d number of parameters\n",length(p0()))
+    @printf("Optimising %d number of parameters\n", size(Z,2)+N₊)
 
-    solutions = [optimize(Optim.only_fg!(fg!), p0(), ConjugateGradient(), opt) for _ in 1:repeats]
+    solutions = [optimize(objective, p0(), LBFGS(), opt, autodiff=:forward) for _ in 1:repeats]
 
     bestindex = argmin([s.minimum for s in solutions])
+
+    @printf("best fmin=%f\n", solutions[bestindex].minimum)
 
     Zopt, νopt, Lroot = unpack(solutions[bestindex].minimizer)
    
