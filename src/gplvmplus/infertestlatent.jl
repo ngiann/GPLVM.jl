@@ -94,7 +94,7 @@ function infertestlatent(X₊, 𝛃; μ = μ, Σ = Σ, K = K, η = η, Λroot = 
     # Carry out actual optimisation and obtain optimised parameters
     #-----------------------------------------------------------------
 
-    @printf("Optimising %d number of parameters\n", size(Z,2)+N₊)
+    @printf("Optimising %d number of parameters\n", size(Z,1)+N₊)
 
     solutions = [optimize(objective, p0(), LBFGS(), opt, autodiff=:forward) for _ in 1:repeats]
 
