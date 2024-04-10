@@ -21,6 +21,7 @@ module GPLVM
     include("common/expectation_of_sum_D_log_prior_zero_mean.jl")
     include("common/entropy.jl")
     include("common/getfg!.jl")
+    include("common/callback.jl")
 
     export toydata
 
