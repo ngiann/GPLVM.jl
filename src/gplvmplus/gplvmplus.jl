@@ -45,40 +45,42 @@ function gplvmplus(X, 𝛔 = missing; iterations = 1, H1 = 10, H2 = H1, seed = 1
     upk(p, 𝛃) = unpack_gplvmplus(p, 𝛃, D, N, net, Q)
 
 
-    #-----------------------------------------------------------------
-    # define options, loss and gradient to be passed to Optim.optimize
-    #-----------------------------------------------------------------
-
-    opt = Optim.Options(iterations = iterations, show_trace = true, show_every = 10)
+    #------------------------------------------------
+    # Setup and run optimiser
+    #------------------------------------------------
 
     objective(p) = -marginallikelihood_gplvmplus(X, upk(p, 𝛃)...; JITTER = JITTER, η = η)
 
-    function fg!(F, G, x)
-            
-        local value, ∇f = Zygote.withgradient(objective, x)
+    function callback(state,l)
+        # callback function to observe training
 
-        isnothing(G) || copyto!(G, ∇f[1])
-
-        isnothing(F) || return value
-
-        nothing
+        @printf("Iter %d, fitness = %4.6f\n", state.iter, l)
+        
+        return false
 
     end
-
     
+    VERIFY ? numerically_verify_gplvmplus(X, upk(p0, 𝛃)..., JITTER, η) : nothing
+    
+    @printf("Optimising %d number of parameters\n",length(p0))
+    optf = Optimization.OptimizationFunction((u,_)->objective(u), Optimization.AutoZygote())
+    prob = Optimization.OptimizationProblem(optf, p0)
+    sol  = Optimization.solve(prob, ConjugateGradient(), maxiters=iterations, callback = callback)
+
+    Zopt, θopt, 𝛃opt, μopt, Λrootopt, wopt, αopt, bopt = upk(sol.u, 𝛃)
+
+
+    VERIFY ? numerically_verify_gplvmplus(X, upk(results.minimizer, 𝛃)..., JITTER, η) : nothing
+
     #-----------------------------------------------------------------
     # Carry out actual optimisation and obtain optimised parameters
     #-----------------------------------------------------------------
 
-    @printf("Optimising %d number of parameters\n",length(p0))
 
-    VERIFY ? numerically_verify_gplvmplus(X, upk(p0, 𝛃)..., JITTER, η) : nothing
-    
-    results = optimize(Optim.only_fg!(fg!), p0, ConjugateGradient(), opt) # alphaguess = InitialQuadratic(α0=1e-8)
+   
+    # results = optimize(Optim.only_fg!(fg!), p0, ConjugateGradient(), opt) # alphaguess = InitialQuadratic(α0=1e-8)
 
-    VERIFY ? numerically_verify_gplvmplus(X, upk(results.minimizer, 𝛃)..., JITTER, η) : nothing
-
-    Zopt, θopt, 𝛃opt, μopt, Λrootopt, wopt, αopt, bopt = upk(results.minimizer, 𝛃)
+    # Zopt, θopt, 𝛃opt, μopt, Λrootopt, wopt, αopt, bopt = upk(results.minimizer, 𝛃)
    
 
     #-----------------------------------------------------------------

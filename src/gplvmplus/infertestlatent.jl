@@ -39,12 +39,13 @@ function infertestlatent(X₊, 𝛃; μ = μ, Σ = Σ, K = K, η = η, Λroot = 
 
     # convenient, shorter name
 
-    unpack(p) = unpack_inferlatent_gplvmplus(p ; Q = Q, N₊ = N₊, w = w, net = net)
+    unpack(p) = unpack_inferlatent_gplvmplus(p ; D = D, Q = Q, N₊ = N₊)
     
 
     #--------------------------------------------------
     function objective(Z₊, ν, Lroot)
     #--------------------------------------------------
+
 
         # return partial log-likelihood composed of sum of log-prior contribution, entropy, penalty on latent coordinates
 
@@ -85,7 +86,7 @@ function infertestlatent(X₊, 𝛃; μ = μ, Σ = Σ, K = K, η = η, Λroot = 
 
         local initopt = Optim.Options(iterations = iterations, show_trace = true, show_every = 1)
         
-        optimize(objective, [Z[:,luckyindex]; randn(rg, N₊)], NelderMead(), initopt).minimizer
+        optimize(objective, [Z[:,luckyindex]; randn(rg, D*N₊); randn(rg, N₊)], NelderMead(), initopt).minimizer
 
     end
 
