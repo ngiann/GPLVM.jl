@@ -32,7 +32,7 @@ function inferlatentgplvmvar(X₊, R; iterations = 1000, repeats = 10)
 
     # use the same unpacking function like GPLVM₊
 
-    unpack(p) = unpack_inferlatent_gplvmplus(p ; Q = Q, N₊ = N₊, w = w, net = net)
+    unpack(p) = unpack_inferlatent_gplvmplus(p ; D = D, Q = Q, N₊ = N₊)
 
     function loss(Z₊, ν, Lroot)
         
@@ -59,7 +59,7 @@ function inferlatentgplvmvar(X₊, R; iterations = 1000, repeats = 10)
         
         luckyindex = ceil(Int, rand(rg) * size(R[:Z],2)) # pick a random coordinate as starting point for optimisation
      
-        init = optimize(objective, [Z[:,luckyindex]; randn(rg, N₊)], NelderMead(), opt).minimizer
+        init = optimize(objective, [Z[:,luckyindex]; randn(rg, D*N₊); randn(rg, N₊)], NelderMead(), opt).minimizer
 
         optimize(objective, init, LBFGS(), opt, autodiff=:forward)
 

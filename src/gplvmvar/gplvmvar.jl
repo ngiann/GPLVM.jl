@@ -53,25 +53,16 @@ function gplvmvar(X, 𝛔 = missing; iterations = 1, η = 1e-2, seed = 1, Q = 2,
 
     objective(p) = -marginallikelihood_gplvmvar(X, upk(p, 𝛃)...; JITTER = JITTER, η = η)
     
-    fg! = getfg!(objective)
-
-    # set options for optimiser
-
-    opt = Optim.Options(iterations = iterations, show_trace = true, show_every = 10)
-
-    # numerically verify before optimisation
-
-    VERIFY ? numerically_verify_gplvmvar(X, upk(p0, 𝛃)..., JITTER, η) : nothing
-
-    # run actual optimisation
+    VERIFY ? numerically_verify_gplvmplus(X, upk(p0, 𝛃)..., JITTER, η) : nothing
     
     @printf("Optimising %d number of parameters\n",length(p0))
+    optf = Optimization.OptimizationFunction((u,_)->objective(u), Optimization.AutoZygote())
+    prob = Optimization.OptimizationProblem(optf, p0)
+    sol  = Optimization.solve(prob, ConjugateGradient(), maxiters=iterations, callback = callback)
 
-    results = optimize(Optim.only_fg!(fg!), p0, LBFGS(), opt)
+    Zopt, θopt, 𝛃opt, μopt, Λrootopt, wopt, bopt = upk(sol.u, 𝛃)
 
-    # numerically verify after optimisation
-
-    VERIFY ? numerically_verify_gplvmvar(X, upk(results.minimizer, 𝛃)..., JITTER, η) : nothing
+    VERIFY ? numerically_verify_gplvmplus(X, upk(results.minimizer, 𝛃)..., JITTER, η) : nothing
 
 
     #---------------------------------------------------------------------------
@@ -80,8 +71,6 @@ function gplvmvar(X, 𝛔 = missing; iterations = 1, η = 1e-2, seed = 1, Q = 2,
     # optimised variational parameters.
     #---------------------------------------------------------------------------
 
-    Zopt, θopt, 𝛃opt, μopt, Λrootopt, wopt, bopt = upk(results.minimizer, 𝛃)
- 
     Kopt, Σopt = let
 
         local D² = pairwise(SqEuclidean(), Zopt)
