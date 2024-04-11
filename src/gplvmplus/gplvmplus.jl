@@ -29,7 +29,7 @@ function gplvmplus(X; iterations = 1, H1 = 10, H2 = H1, seed = 1, Q = 2, JITTER 
     
     # initialise parameters randomly
 
-    p0 = [randn(rg, Q*N)*0.2; randn(rg,1)*3; 0.0; 0.1*randn(rg, nwts); randn(rg, N); 0.0;0.0]
+    p0 = [randn(rg, Q*N)*0.1; randn(rg,2)*0.1; 0; 0.1*randn(rg, nwts); 0.1*randn(rg, N); 0.1*randn(rg, 2)]
 
     # define auxiliary unpack function
 
@@ -44,7 +44,7 @@ function gplvmplus(X; iterations = 1, H1 = 10, H2 = H1, seed = 1, Q = 2, JITTER 
     
     VERIFY ? numerically_verify_gplvmplus(X, upk(p0)..., JITTER, η) : nothing
     
-    # @printf("(A) Optimising %d number of parameters\n",length(p0))
+    @printf("(B) Optimising %d number of parameters\n",length(p0))
     # optf = Optimization.OptimizationFunction((u,_)->objective(u), Optimization.AutoZygote())
     # prob = Optimization.OptimizationProblem(optf, p0)
     # sol1  = Optimization.solve(prob, ConjugateGradient(), maxiters=1000, callback = callback)
@@ -55,7 +55,7 @@ function gplvmplus(X; iterations = 1, H1 = 10, H2 = H1, seed = 1, Q = 2, JITTER 
    
     opt = Optim.Options(iterations = iterations, show_trace = true, show_every = 1)
     fg! = getfg!(objective)   
-    results = optimize(Optim.only_fg!(fg!), p0,ConjugateGradient(),opt)# BFGS(alphaguess = InitialStatic(scaled=true)), opt)
+    results = optimize(Optim.only_fg!(fg!), p0, LBFGS(),opt)# BFGS(alphaguess = InitialStatic(scaled=true)), opt)
     Zopt, θopt,βopt, μopt, Λrootopt, wopt, αopt, bopt = upk(results.minimizer)
 
     
