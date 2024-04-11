@@ -46,7 +46,7 @@ function infertestlatent(X₊; β = β, μ = μ, Σ = Σ, K = K, η = η, Λroot
 
         local E, V = expectation_latent_function_values(;α = α, b = b, μ = ν, Σ = A)
 
-        ℓ += -0.5*D*countObs*log(2π) + 0.5*countObs*log(β)  -0.5*β*sum(abs2.((X₊[idx] - E[idx]))) - 1/2 * β * sum(V)
+        ℓ += -0.5*D*countObs*log(2π) + 0.5*countObs*log(β)  -0.5*β*sum(abs2.((X₊[idx] - E[idx]))) - 1/2 * β * sum(V[idx])
 
         return ℓ
 
