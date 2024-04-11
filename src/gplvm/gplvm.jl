@@ -1,4 +1,4 @@
-function gplvm(X; iterations = 1, α = 1e-2, seed = 1, Q = 2, JITTER = 1e-6, VERIFY = false)
+function gplvm(X; iterations = 1, α = 1e-2, seed = 1, Q = 2, JITTER = 1e-8)
 
     # Fix random number generator for reproducibility
 
@@ -65,28 +65,12 @@ function gplvm(X; iterations = 1, α = 1e-2, seed = 1, Q = 2, JITTER = 1e-6, VER
 
     # setup optimiser, run optimisation and retrieve optimised parameters
 
-    opt = Optim.Options(iterations = iterations, show_trace = true, show_every = 1)
+    @printf("Optimising %d number of parameters\n",length(paraminit()))
+    optf = Optimization.OptimizationFunction((u,_)->objective(u), Optimization.AutoZygote())
+    prob = Optimization.OptimizationProblem(optf, paraminit())
+    sol  = Optimization.solve(prob, ConjugateGradient(), maxiters=iterations, callback = callback)
 
-    function fg!(F, G, x)
-            
-        value, ∇f = Zygote.withgradient(objective, x)
-
-        isnothing(G) || copyto!(G, ∇f[1])
-
-        isnothing(F) || return value
-
-        nothing
-
-    end
-
-    
-    initialsolutions = [paraminit() for _ in 1:10]
-
-    bestindex = argmin(map(objective, initialsolutions))
-
-    results = optimize(Optim.only_fg!(fg!), initialsolutions[bestindex], LBFGS(), opt)
-
-    Zopt, θopt, σ²opt, bopt = upk(results.minimizer)
+    Zopt, θopt, σ²opt, bopt = upk(sol.u)
 
 
     Kopt = let
