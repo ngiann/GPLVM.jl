@@ -1,14 +1,14 @@
 module GPLVM
 
     using LinearAlgebra, Distributions, Random, Statistics, Distances
-    using Optim, BlackBoxOptim, Zygote
+    # using Optim, BlackBoxOptim, Zygote
     using ExponentialExpectations, FillArrays
     using ForwardNeuralNetworks
     using Printf, PyPlot
     using JLD2
     using Artifacts, LazyArtifacts
     using Transducers
-    using Optimization, OptimizationOptimJL
+    using Optimization, OptimizationOptimJL, OptimizationBBO, Zygote
     
     # common
     include("common/covariance.jl" )
