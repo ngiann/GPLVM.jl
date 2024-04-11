@@ -50,3 +50,34 @@ Y = let
 end
 
 ```
+
+```
+using GPLVM, PPCASpectra, LinearAlgebra
+BLAS.set_num_threads(16)
+
+---------------
+
+X = loadoriginalspectra();
+Ytr = replace(Matrix(X[1:600,1:2:end]'), Inf => Inf);
+R1 = gplvm(Ytr,seed=1,Q=3,iterations=3);
+R1 = gplvm(Ytr,seed=1,Q=3,iterations=5000)
+
+
+
+----------
+
+X = loadoriginalspectra();
+Ytr = replace(Matrix(X[1:600,1:2:end]'), Inf => Inf);
+idx = findall(x->x<=0,Ytr);
+Ytr[idx] .= Inf;
+R2 = warpedgplvm(Ytr,seed=1,Q=3,iterations=3);
+R2 = warpedgplvm(Ytr,seed=1,Q=3,iterations=5000);
+JLD2.save("warpedgplvm.jld2","R",R2,"when",now(),"cmd","""R2 = warpedgplvm(Ytr,seed=1,Q=3,iterations=5000);""")
+
+----------
+
+X = loadoriginalspectra();
+
+R3 = warpedgplvm(Ytr,seed=1,Q=3,iterations=5000);
+
+```
