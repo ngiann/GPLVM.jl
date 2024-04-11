@@ -1,6 +1,6 @@
 module GPLVM
 
-    using LinearAlgebra, Distributions, Random, Statistics, Distances
+    using LinearAlgebra, Distributions, Random, Statistics, Distances, LogExpFunctions
     # using Optim, BlackBoxOptim, Zygote
     using ExponentialExpectations, FillArrays
     using ForwardNeuralNetworks
