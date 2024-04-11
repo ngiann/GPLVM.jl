@@ -156,13 +156,13 @@ function warpedgplvm(X; iterations = 1, α = 1e-2, seed = 1, Q = 2, JITTER = 1e-
 
     paraminit = [randn(rg, Q*N)*0.1; randn(rg,4)*0.1]
     
-    opt = Optim.Options(iterations = iterations, show_trace = true, show_every = 1)
+  
+    @printf("Optimising %d number of parameters\n",length(paraminit))
+    optf = Optimization.OptimizationFunction((u,_)->objective(u), Optimization.AutoZygote())
+    prob = Optimization.OptimizationProblem(optf, paraminit)
+    sol  = Optimization.solve(prob, ConjugateGradient(), maxiters=iterations, callback = callback)
 
-    fg! = getfg!(objective)
-
-    results = optimize(Optim.only_fg!(fg!), paraminit, ConjugateGradient(), opt)
-
-    Zopt, θopt, σ²opt, bopt = unpack(results.minimizer)# 
+    Zopt, θopt, σ²opt, bopt = unpack(sol.u)
 
     Kopt = calculateK(Zopt, θopt, σ²opt)
 

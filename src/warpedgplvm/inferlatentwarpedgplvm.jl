@@ -69,19 +69,28 @@ function inferlatentwarpedgplvm(Y₊, R; iterations = 1000, repeats = 10, seed =
     
     function getsolution()
         
-        luckyindices = ceil.(Int, rand(rg,N₊) * size(R[:Z],2)) # pick a random coordinate as starting point for optimisation
-     
-        init = optimize(objective, vec(R[:Z][:,luckyindices]), NelderMead(), opt).minimizer
+        # pick randonly projections of training data as starting points for optimisation
+        local init = let 
+    
+            local randomindices = randperm(rg, size(R[:Z],2))[1:10]
+            
+            local bestindex = argmin(map(i -> objective(R[:Z][:,i]), randomindices))
 
-        optimize(objective, init, ConjugateGradient(), opt, autodiff=:forward)
+            R[:Z][:,bestindex]
+
+        end
+        
+        optf = Optimization.OptimizationFunction((u,_)->objective(u), Optimization.AutoZygote())
+        prob = Optimization.OptimizationProblem(optf, init)
+        Optimization.solve(prob, ConjugateGradient(), maxiters=iterations, callback = callback)
 
     end
 
 
     solutions = [getsolution() for _ in 1:repeats]
 
-    bestindex = argmin([s.minimum for s in solutions])
+    bestindex = argmin([s.objective for s in solutions])
 
-    return unpack(solutions[bestindex].minimizer)
+    return unpack(solutions[bestindex].u)
     
 end
