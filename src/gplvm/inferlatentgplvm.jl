@@ -1,10 +1,10 @@
-function inferlatentgplvm(ytest, R; iterations = 100, repeats = 1) 
+function inferlatentgplvm(ytest, R; iterations = 1000, repeats = 1) 
 
     @show Q = length(R[:Z][:,1]) # dimension of latent space
 
     idx = findall(x->~isinf(x), ytest)
 
-    function loss(x)
+    function predictiveloglikel(x)
 
         local μpred, Σpred = predictgplvm(reshape(x,Q,1), R)
 
@@ -15,42 +15,35 @@ function inferlatentgplvm(ytest, R; iterations = 100, repeats = 1)
         
     end
 
-    
-    opt = Optim.Options(show_trace = true, show_every = 1, iterations = iterations)
+   
+    objective(p) = -predictiveloglikel(p)
 
-    objective(p) = -loss(p)
-
-    # function fg!(F, G, x)
-
-    #     value, ∇f = Zygote.withgradient(objective,x)
-
-    #     isnothing(G) || copyto!(G, ∇f[1])
-
-    #     isnothing(F) || return value
-
-    #     nothing
-
-    # end
 
     function getsolution()
         
-        luckyindex = ceil(Int, rand() * size(R[:Z],2)) # pick a random coordinate as starting point for optimisation
-     
-        bnd = (minimum(vec(R[:Z])), maximum(vec(R[:Z])))
+        
+        # pick randonly projections of training data as starting points for optimisation
+        local init = let 
+            
+            local randomindices = randperm(size(R[:Z],2))[1:10]
+            
+            local bestindex = argmin(map(i -> objective(R[:Z][:,i]), randomindices))
 
-        init = best_candidate(bboptimize(objective; Method=:random_search, SearchRange = bnd, NumDimensions = Q, MaxFuncEvals = 100))
- 
-        optimize(objective, init, NelderMead(), opt)
+            R[:Z][:,bestindex]
 
-        # optimize(objective, init, NelderMead(), opt)
+        end
+
+        @printf("Optimising %d number of parameters\n",length(init))
+        local optf = Optimization.OptimizationFunction((u,_)->objective(u), Optimization.AutoForwardDiff())
+        local prob = Optimization.OptimizationProblem(optf, init)
+        Optimization.solve(prob, NelderMead(), maxiters=iterations, callback = callback)
 
     end
 
-
     solutions = [getsolution() for _ in 1:repeats]
 
-    bestindex = argmin([s.minimum for s in solutions])
+    bestindex = argmin([s.objective for s in solutions])
 
-    return solutions[bestindex].minimizer
+    return solutions[bestindex].u
 
 end
