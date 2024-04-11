@@ -22,7 +22,7 @@ function gplvmplus(X; iterations = 1, H1 = 10, H2 = H1, seed = 1, Q = 2, JITTER 
 
     # define neural network that variational parameters and its number of weights
 
-    net = TwoLayerNetwork(in = Q, H = H1, out=D)
+    net = ThreeLayerNetwork(in = Q, H1 = H1, H2 = H2, out=D)
     
     nwts = ForwardNeuralNetworks.numweights(net)
   
@@ -44,16 +44,19 @@ function gplvmplus(X; iterations = 1, H1 = 10, H2 = H1, seed = 1, Q = 2, JITTER 
     
     VERIFY ? numerically_verify_gplvmplus(X, upk(p0)..., JITTER, η) : nothing
     
-    @printf("(A) Optimising %d number of parameters\n",length(p0))
-    optf = Optimization.OptimizationFunction((u,_)->objective(u), Optimization.AutoZygote())
-    prob = Optimization.OptimizationProblem(optf, p0)
-    sol  = Optimization.solve(prob, ConjugateGradient(), maxiters=iterations, callback = callback)
-    Zopt, θopt,βopt, μopt, Λrootopt, wopt, αopt, bopt = upk(sol.u)
+    # @printf("(A) Optimising %d number of parameters\n",length(p0))
+    # optf = Optimization.OptimizationFunction((u,_)->objective(u), Optimization.AutoZygote())
+    # prob = Optimization.OptimizationProblem(optf, p0)
+    # sol1  = Optimization.solve(prob, ConjugateGradient(), maxiters=1000, callback = callback)
+
+    # prob2 = Optimization.OptimizationProblem(optf, sol1.u)
+    # sol  = Optimization.solve(prob2, ConjugateGradient(), maxiters=iterations, callback = callback)
+    # Zopt, θopt,βopt, μopt, Λrootopt, wopt, αopt, bopt = upk(sol.u)
    
-    # opt = Optim.Options(iterations = iterations, show_trace = true, show_every = 10)
-    # fg! = getfg!(objective)   
-    # results = optimize(Optim.only_fg!(fg!), p0, ConjugateGradient(), opt)
-    # Zopt, θopt,βopt, μopt, Λrootopt, wopt, αopt, bopt = upk(results.minimizer)
+    opt = Optim.Options(iterations = iterations, show_trace = true, show_every = 1)
+    fg! = getfg!(objective)   
+    results = optimize(Optim.only_fg!(fg!), p0,ConjugateGradient(),opt)# BFGS(alphaguess = InitialStatic(scaled=true)), opt)
+    Zopt, θopt,βopt, μopt, Λrootopt, wopt, αopt, bopt = upk(results.minimizer)
 
     
     VERIFY ? numerically_verify_gplvmplus(X, upk(results.minimizer)..., JITTER, η) : nothing
