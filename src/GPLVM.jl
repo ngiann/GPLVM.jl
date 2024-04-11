@@ -8,7 +8,7 @@ module GPLVM
     using JLD2
     using Artifacts, LazyArtifacts
     using Transducers
-    using Optimization, OptimizationOptimJL, OptimizationBBO, Zygote, ReverseDiff
+    using Optimization, OptimizationOptimJL, OptimizationBBO, Zygote#, LineSearches
     
     # common
     include("common/covariance.jl" )
