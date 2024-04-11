@@ -20,7 +20,7 @@ Calculates (K⁻¹ + W)⁻¹ where W is diagonal and `W½.^2 == W`.
 The results should be equivalent to `inv(inv(K)+Diagonal(W½).^2)``.
 See equations (3.26) and (3.27) in book "Gaussian Processes for Machine Learning" by R&W.
 """
-function woodbury_327(;K = K, W½::Diagonal{T,Vector{T}} = W½) where T
+function woodbury_327(;K = K, W½::Diagonal = W½)
     
     # sources:
     # see 145 in matrix coobook where we set A⁻¹=K, B=I, C = W½
@@ -45,7 +45,7 @@ Calculates (K + W⁻¹)⁻¹ where W is diagonal and `W½.^2 == W`.
 The results should be equivalent to `inv(K + inv(Diagonal(W½).^2))``.
 See equations (3.26) and (3.28) in book "Gaussian Processes for Machine Learning" by R&W.
 """
-function woodbury_328(; K = K, W½::Diagonal{T,Vector{T}} = W½) where T
+function woodbury_328(; K = K, W½::Diagonal = W½)
     
     KW½ = K*W½
 

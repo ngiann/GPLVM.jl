@@ -1,24 +1,12 @@
-# There are two cases cases:
-
-# 1. At testing no error measurements provided: assume at training GPLVM₊ precision was optimised.
-
 function inferlatent(X₊, R; iterations = 1000, repeats=1) 
-    
-    @assert isa(R[:𝛃], FillArrays.AbstractFillMatrix)
 
-    infertestlatent(X₊, Fill(R[:𝛃][1], size(X₊)); μ = R[:μ], Σ = R[:Σ], K = R[:K], η = R[:η], Λroot = R[:Λroot], net = R[:net], w = R[:w],
+    infertestlatent(X₊; β = R[:β], μ = R[:μ], Σ = R[:Σ], K = R[:K], η = R[:η], Λroot = R[:Λroot], net = R[:net], w = R[:w],
     α = R[:α], b = R[:b], Z = R[:Z], θ = R[:θ], JITTER = R[:JITTER], rg = R[:rg], iterations = iterations, repeats = repeats)
 
 end
 
-# 2. At testing error measuments are provided.
 
-inferlatent(X₊, 𝛔, R; iterations = iterations, repeats = repeats) = infertestlatent(X₊, inverterrors(𝛔);  μ = R[:μ], Σ = R[:Σ], K = R[:K], η = R[:η], Λroot = R[:Λroot], net = R[:net], w = R[:w],
-α = R[:α], b = R[:b], Z = R[:Z], θ = R[:θ], JITTER = R[:JITTER], rg = R[:rg], iterations = iterations, repeats = repeats)
-
-
-
-function infertestlatent(X₊, 𝛃; μ = μ, Σ = Σ, K = K, η = η, Λroot = Λroot, net = net, w = w,
+function infertestlatent(X₊; β = β, μ = μ, Σ = Σ, K = K, η = η, Λroot = Λroot, net = net, w = w,
                              α = α, b = b, Z = Z, θ = θ, JITTER = JITTER, rg = rg, iterations = iterations, repeats = repeats)
 
     # sort out dimensions
@@ -27,7 +15,7 @@ function infertestlatent(X₊, 𝛃; μ = μ, Σ = Σ, K = K, η = η, Λroot = 
 
     Q = size(Z, 1)
 
-    N₊ = size(X₊, 2); @assert(D == size(X₊, 1)); @assert(size(X₊) == size(𝛃))
+    N₊ = size(X₊, 2); @assert(D == size(X₊, 1))
 
 
     # pre-calculate
@@ -42,6 +30,9 @@ function infertestlatent(X₊, 𝛃; μ = μ, Σ = Σ, K = K, η = η, Λroot = 
     unpack(p) = unpack_inferlatent_gplvmplus(p ; D = D, Q = Q, N₊ = N₊)
     
 
+    idx      = findall(x -> ~isinf(x), X₊)
+    countObs = length(idx)
+
     #--------------------------------------------------
     function objective(Z₊, ν, Lroot)
     #--------------------------------------------------
@@ -55,7 +46,7 @@ function infertestlatent(X₊, 𝛃; μ = μ, Σ = Σ, K = K, η = η, Λroot = 
 
         local E, V = expectation_latent_function_values(;α = α, b = b, μ = ν, Σ = A)
 
-        ℓ += -0.5*D*N₊*log(2π) + 0.5*sum(log.(𝛃))  -0.5*sum(𝛃 .* abs2.(myskip.(X₊ .- E))) - 1/2 * sum(𝛃 .* V)
+        ℓ += -0.5*D*countObs*log(2π) + 0.5*countObs*log(β)  -0.5*β*sum(abs2.((X₊[idx] - E[idx]))) - 1/2 * β * sum(V)
 
         return ℓ
 
