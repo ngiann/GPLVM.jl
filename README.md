@@ -52,32 +52,43 @@ end
 ```
 
 ```
-using GPLVM, PPCASpectra, LinearAlgebra
-BLAS.set_num_threads(16)
+using GPLVM, PPCASpectra, LinearAlgebra, JLD2, Dates
+BLAS.set_num_threads(10)
 
 ---------------
 
 X = loadoriginalspectra();
-Ytr = replace(Matrix(X[1:600,1:2:end]'), Inf => Inf);
-R1 = gplvm(Ytr,seed=1,Q=3,iterations=3);
-R1 = gplvm(Ytr,seed=1,Q=3,iterations=5000)
+Ytr = replace(Matrix(X[1:700,1:2:end]'), Inf => Inf);
+R1 = gplvmvar(Ytr,seed=1,Q=3,iterations=3); 
+
+R1 = gplvmvar(Ytr,seed=1,Q=3,iterations=5000); JLD2.save("boss_gplvmvar.jld2","when",now(), "R",R1, "cmd","""R1 = gplvmvar(Ytr,seed=1,Q=3,iterations=5000)""")
+
+
 
 
 
 ----------
 
 X = loadoriginalspectra();
-Ytr = replace(Matrix(X[1:600,1:2:end]'), Inf => Inf);
+Ytr = replace(Matrix(X[1:700,1:2:end]'), Inf => Inf);
 idx = findall(x->x<=0,Ytr);
 Ytr[idx] .= Inf;
-R2 = warpedgplvm(Ytr,seed=1,Q=3,iterations=3);
-R2 = warpedgplvm(Ytr,seed=1,Q=3,iterations=5000);
-JLD2.save("warpedgplvm.jld2","R",R2,"when",now(),"cmd","""R2 = warpedgplvm(Ytr,seed=1,Q=3,iterations=5000);""")
+logYtr = log.(Ytr)
+
+R2 = gplvmvar(logYtr,seed=1,Q=3,iterations=3); 
+
+R2 = gplvmvar(logYtr,seed=1,Q=3,iterations=5000); JLD2.save("boss_gplvmvar_log.jld2","when",now(), "R",R2, "cmd","""R2 = gplvmvar(logYtr,seed=1,Q=3,iterations=5000)""")
+
 
 ----------
 
 X = loadoriginalspectra();
+Ytr = replace(Matrix(X[1:700,1:2:end]'), Inf => Inf);
+R3 = gplvmplus(Ytr,seed=1,Q=3,iterations=3); 
 
-R3 = warpedgplvm(Ytr,seed=1,Q=3,iterations=5000);
+R3 = gplvmplus(Ytr,seed=1,Q=3,iterations=5000); JLD2.save("boss_gplvmplus.jld2","when",now(), "R",R3, "cmd","""R3 = gplvmplus(Ytr,seed=1,Q=3,iterations=5000)""")
+
+
+
 
 ```
