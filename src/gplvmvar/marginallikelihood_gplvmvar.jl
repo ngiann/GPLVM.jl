@@ -1,4 +1,4 @@
-function marginallikelihood_gplvmvar(X, 𝛃, idx, Z, θ, μ, Λroot, w, b; JITTER = JITTER, η = η, ξ = ξ)
+function marginallikelihood_gplvmvar(X, idx, Z, θ, β, μ, Λroot, w, b; JITTER = JITTER, η = η, ξ = ξ)
 
     # sort out dimensions
 
@@ -21,7 +21,8 @@ function marginallikelihood_gplvmvar(X, 𝛃, idx, Z, θ, μ, Λroot, w, b; JITT
 
     # contribution of likelihood
     
-    @views ℓ += - 0.5*sum(𝛃[idx] .* abs2.(((X[idx].-μ[idx].-b))))- 0.5*sum(𝛃*diag(Σ)) # + 0.5*sum((log.(𝛃))) 
+    # @views ℓ += - 0.5*sum(𝛃[idx] .* abs2.(((X[idx].-μ[idx].-b))))- 0.5*sum(𝛃*diag(Σ)) # + 0.5*sum((log.(𝛃))) 
+    @views ℓ += - 0.5*sum(β .* abs2.(((X[idx].-μ[idx].-b))))- 0.5*sum(β*diag(Σ))  + 0.5*length(idx)*log(β)
 
     # contribution of entropy 
 

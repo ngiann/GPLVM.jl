@@ -1,4 +1,4 @@
-function gplvmvar(X, 𝛔 = missing; iterations = 1, η = 1e-2, ξ = 0.1, seed = 1, Q = 2, JITTER = 1e-6,  H1 = 10, H2 = H1, VERIFY = false)
+function gplvmvar(X; iterations = 1, η = 1e-2, ξ = 0.1, seed = 1, Q = 2, JITTER = 1e-6,  H1 = 10, H2 = H1, VERIFY = false)
     
     notinf(x) = ~isinf(x)
 
@@ -27,7 +27,7 @@ function gplvmvar(X, 𝛔 = missing; iterations = 1, η = 1e-2, ξ = 0.1, seed =
 
     # we work with precisions instead of standard deviations
 
-    𝛃 = inverterrors(𝛔)
+    # 𝛃 = inverterrors(𝛔)
 
 
     # define neural network that modeltypes variational parameters and its number of weights
@@ -39,7 +39,7 @@ function gplvmvar(X, 𝛔 = missing; iterations = 1, η = 1e-2, ξ = 0.1, seed =
     
     # Initialise free parameters randomly
 
-    p0 = [randn(rg, Q*N)*0.2; randn(rg,2)*1; 0.1*randn(rg, nwts); randn(rg, N); randn(rg)]
+    p0 = [randn(rg, Q*N)*0.2; randn(rg,3)*1; 0.1*randn(rg, nwts); randn(rg, N); randn(rg)]
     
     # define auxiliary unpack function
 
@@ -52,7 +52,7 @@ function gplvmvar(X, 𝛔 = missing; iterations = 1, η = 1e-2, ξ = 0.1, seed =
     
     # setup objective function and gradient
 
-    objective(p) = -marginallikelihood_gplvmvar(X, 𝛃, idx, upk(p)...; JITTER = JITTER, η = η, ξ = ξ)
+    objective(p) = -marginallikelihood_gplvmvar(X, idx, upk(p)...; JITTER = JITTER, η = η, ξ = ξ)
     
     # VERIFY ? numerically_verify_gplvmplus(X, upk(p0)..., JITTER, η) : nothing
     
@@ -61,7 +61,7 @@ function gplvmvar(X, 𝛔 = missing; iterations = 1, η = 1e-2, ξ = 0.1, seed =
     prob = Optimization.OptimizationProblem(optf, p0)
     sol  = Optimization.solve(prob, ConjugateGradient(), maxiters=iterations, callback = callback)
 
-    Zopt, θopt, μopt, Λrootopt, wopt, bopt = upk(sol.u)
+    Zopt, θopt, βopt, μopt, Λrootopt, wopt, bopt = upk(sol.u)
 
     # VERIFY ? numerically_verify_gplvmplus(X, upk(results.minimizer)..., JITTER, η) : nothing
 
@@ -83,6 +83,6 @@ function gplvmvar(X, 𝛔 = missing; iterations = 1, η = 1e-2, ξ = 0.1, seed =
         K, Σ
     end
 
-    return (w = wopt, net = net, η = η, Σ = Σopt, Z = Zopt, θ = θopt, μ = μopt, Λroot = Λrootopt, K = Kopt, b = bopt, JITTER = JITTER)
+    return (w = wopt, net = net, η = η, Σ = Σopt, Z = Zopt, θ = θopt, β = βopt, μ = μopt, Λroot = Λrootopt, K = Kopt, b = bopt, JITTER = JITTER)
 
 end

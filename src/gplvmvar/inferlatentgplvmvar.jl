@@ -1,4 +1,4 @@
-function inferlatentgplvmvar(X, σ, R; iterations = 1000, repeats = 10, seed = 1) 
+function inferlatentgplvmvar(X, R; iterations = 1000, repeats = 10, seed = 1) 
 
     @show Q  = length(R[:Z][:,1]) # dimension of latent space
     @show N₊ = 1
@@ -17,8 +17,8 @@ function inferlatentgplvmvar(X, σ, R; iterations = 1000, repeats = 10, seed = 1
     Z      = R[:Z]
     θ      = R[:θ]
     JITTER = R[:JITTER]
+    β = R[:β]
    
-    β = 1.0 ./ σ
 
     rg = MersenneTwister(seed)
 
@@ -48,7 +48,8 @@ function inferlatentgplvmvar(X, σ, R; iterations = 1000, repeats = 10, seed = 1
 
         # log-likelihood contribution
 
-        @views ℓ += - 0.5*sum(β[idx] .* abs2.(((X[idx].-ν[idx].-b)))) + 0.5*sum((log.(β))) - 0.5*sum(β*diag(A))
+        # @views ℓ += - 0.5*sum(β[idx] .* abs2.(((X[idx].-ν[idx].-b)))) + 0.5*sum((log.(β))) - 0.5*sum(β*diag(A))
+        @views ℓ += - 0.5*sum(β .* abs2.(((X[idx].-ν[idx].-b)))) - 0.5*sum(β*diag(A))
 
         return ℓ
 
