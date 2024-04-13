@@ -1,4 +1,10 @@
 function gplvmplus(X; iterations = 1, H1 = 10, H2 = H1, seed = 1, Q = 2, JITTER = 1e-8, η = 1e-2, VERIFY = false)
+    
+    notinf(x) = ~isinf(x)
+
+    idx = findall(notinf.(X))
+
+    @show length(idx)/length(X)
 
     #---------------------------------------------------------------------------
     # Setup variables and free parameters: set random seed, get dimensions, etc
@@ -40,7 +46,7 @@ function gplvmplus(X; iterations = 1, H1 = 10, H2 = H1, seed = 1, Q = 2, JITTER 
     # Setup and run optimiser
     #------------------------------------------------
 
-    objective(p) = -marginallikelihood_gplvmplus(X, upk(p)...; JITTER = JITTER, η = η)
+    objective(p) = -marginallikelihood_gplvmplus(X, idx, upk(p)...; JITTER = JITTER, η = η)
     
     VERIFY ? numerically_verify_gplvmplus(X, upk(p0)..., JITTER, η) : nothing
     

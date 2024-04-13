@@ -1,4 +1,4 @@
-function marginallikelihood_gplvmplus(X, Z, θ, β, μ, Λroot, w, α, b; JITTER = JITTER, η = η)
+function marginallikelihood_gplvmplus(X, idx, Z, θ, β, μ, Λroot, w, α, b; JITTER = JITTER, η = η)
 
     # sort out and verify dimensions
 
@@ -25,10 +25,7 @@ function marginallikelihood_gplvmplus(X, Z, θ, β, μ, Λroot, w, α, b; JITTER
 
     E, V = expectation_latent_function_values(;α = α, b = b, μ = μ, Σ = Σ)
 
-    idx      = findall(x -> ~isinf(x), X)
-    countObs = length(idx)
-
-    ℓ += - 0.5*countObs*log(2π) + 0.5*countObs*log(β) - 0.5*β*sum(abs2.((X[idx] - E[idx]))) - 1/2 * β*sum(V[idx])
+    ℓ += 0.5*length(idx)*log(β) - 0.5*β*sum(abs2.((X[idx] - E[idx]))) - 1/2 * β*sum(V[idx])
 
 
     # entropy contribution - implements eq:entropy_gplvm_pos
