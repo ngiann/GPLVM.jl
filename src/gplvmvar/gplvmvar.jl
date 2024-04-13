@@ -1,5 +1,11 @@
-function gplvmvar(X, 𝛔 = missing; iterations = 1, η = 1e-2, seed = 1, Q = 2, JITTER = 1e-6,  H1 = 10, H2 = H1, VERIFY = false)
+function gplvmvar(X, 𝛔 = missing; iterations = 1, η = 1e-2, ξ = 0.1, seed = 1, Q = 2, JITTER = 1e-6,  H1 = 10, H2 = H1, VERIFY = false)
     
+    notinf(x) = ~isinf(x)
+
+    idx = findall(notinf.(X))
+
+    @show length(idx)/length(X)
+
     #---------------------------------------------------------------------------
     # Setup variables and free parameters: set random seed, get dimensions, etc
     #---------------------------------------------------------------------------
@@ -33,16 +39,11 @@ function gplvmvar(X, 𝛔 = missing; iterations = 1, η = 1e-2, seed = 1, Q = 2,
     
     # Initialise free parameters randomly
 
-    p0 = let 
-        
-        ismissing(𝛃) ? [randn(rg, Q*N)*0.2; randn(rg,3)*1; 0.1*randn(rg, nwts); randn(rg, N); randn(rg)] :
-                       [randn(rg, Q*N)*0.2; randn(rg,2)*1; 0.1*randn(rg, nwts); randn(rg, N); randn(rg)]
-        
-    end
+    p0 = [randn(rg, Q*N)*0.2; randn(rg,2)*1; 0.1*randn(rg, nwts); randn(rg, N); randn(rg)]
     
     # define auxiliary unpack function
 
-    upk(p, 𝛃) = unpack_gplvmvar(p, 𝛃, D, N, net, Q)
+    upk(p) = unpack_gplvmvar(p, D, N, net, Q)
 
 
     #---------------------------------------------------------------------------
@@ -51,18 +52,18 @@ function gplvmvar(X, 𝛔 = missing; iterations = 1, η = 1e-2, seed = 1, Q = 2,
     
     # setup objective function and gradient
 
-    objective(p) = -marginallikelihood_gplvmvar(X, upk(p, 𝛃)...; JITTER = JITTER, η = η)
+    objective(p) = -marginallikelihood_gplvmvar(X, 𝛃, idx, upk(p)...; JITTER = JITTER, η = η, ξ = ξ)
     
-    VERIFY ? numerically_verify_gplvmplus(X, upk(p0, 𝛃)..., JITTER, η) : nothing
+    # VERIFY ? numerically_verify_gplvmplus(X, upk(p0)..., JITTER, η) : nothing
     
     @printf("Optimising %d number of parameters\n",length(p0))
     optf = Optimization.OptimizationFunction((u,_)->objective(u), Optimization.AutoZygote())
     prob = Optimization.OptimizationProblem(optf, p0)
     sol  = Optimization.solve(prob, ConjugateGradient(), maxiters=iterations, callback = callback)
 
-    Zopt, θopt, 𝛃opt, μopt, Λrootopt, wopt, bopt = upk(sol.u, 𝛃)
+    Zopt, θopt, μopt, Λrootopt, wopt, bopt = upk(sol.u)
 
-    VERIFY ? numerically_verify_gplvmplus(X, upk(results.minimizer, 𝛃)..., JITTER, η) : nothing
+    # VERIFY ? numerically_verify_gplvmplus(X, upk(results.minimizer)..., JITTER, η) : nothing
 
 
     #---------------------------------------------------------------------------
@@ -82,6 +83,6 @@ function gplvmvar(X, 𝛔 = missing; iterations = 1, η = 1e-2, seed = 1, Q = 2,
         K, Σ
     end
 
-    return (w = wopt, net = net, η = η, Σ = Σopt, Z = Zopt, θ = θopt, 𝛃 = 𝛃opt, μ = μopt, Λroot = Λrootopt, K = Kopt, b = bopt, JITTER = JITTER)
+    return (w = wopt, net = net, η = η, Σ = Σopt, Z = Zopt, θ = θopt, μ = μopt, Λroot = Λrootopt, K = Kopt, b = bopt, JITTER = JITTER)
 
 end

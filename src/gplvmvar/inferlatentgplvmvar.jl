@@ -1,8 +1,8 @@
-function inferlatentgplvmvar(X₊, R; iterations = 1000, repeats = 10) 
+function inferlatentgplvmvar(X, σ, R; iterations = 1000, repeats = 10, seed = 1) 
 
     @show Q  = length(R[:Z][:,1]) # dimension of latent space
     @show N₊ = 1
-    @show D  = length(X₊)
+    @show D  = length(X)
     
     # assign relevant quantities
 
@@ -17,12 +17,17 @@ function inferlatentgplvmvar(X₊, R; iterations = 1000, repeats = 10)
     Z      = R[:Z]
     θ      = R[:θ]
     JITTER = R[:JITTER]
-    β      = R[:𝛃][1]
+   
+    β = 1.0 ./ σ
 
-    rg = MersenneTwister(1)
+    rg = MersenneTwister(seed)
 
 
-    countObs = count(x->~ismissing(x), X₊)
+    notinf(x) = ~isinf(x)
+
+    idx = findall(notinf.(X))
+
+    @show length(idx)/length(X)
     
     # pre-calculate
     
@@ -43,14 +48,14 @@ function inferlatentgplvmvar(X₊, R; iterations = 1000, repeats = 10)
 
         # log-likelihood contribution
 
-        ℓ += - 0.5*β*sum(abs2.(myskip.((X₊.-ν.-b)))) + 0.5*countObs*log(β) - 0.5*countObs*log(2π) - 0.5*β*D*tr(A)
+        @views ℓ += - 0.5*sum(β[idx] .* abs2.(((X[idx].-ν[idx].-b)))) + 0.5*sum((log.(β))) - 0.5*sum(β*diag(A))
 
         return ℓ
 
     end
 
     
-    opt = Optim.Options(show_trace = true, show_every = 1, iterations = iterations)
+    opt = Optim.Options(show_trace = true, show_every = 10, iterations = iterations)
 
     objective(p) = -loss(unpack(p)...)
 
@@ -59,9 +64,9 @@ function inferlatentgplvmvar(X₊, R; iterations = 1000, repeats = 10)
         
         luckyindex = ceil(Int, rand(rg) * size(R[:Z],2)) # pick a random coordinate as starting point for optimisation
      
-        init = optimize(objective, [Z[:,luckyindex]; randn(rg, D*N₊); randn(rg, N₊)], NelderMead(), opt).minimizer
+        init = [Z[:,luckyindex]; randn(rg, D*N₊); randn(rg, N₊)]
 
-        optimize(objective, init, LBFGS(), opt, autodiff=:forward)
+        optimize(objective, init, ConjugateGradient(), opt, autodiff=:forward)
 
     end
 

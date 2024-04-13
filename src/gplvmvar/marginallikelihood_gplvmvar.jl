@@ -1,4 +1,4 @@
-function marginallikelihood_gplvmvar(X, Z, θ, 𝛃, μ, Λroot, w, b; JITTER = JITTER, η = η)
+function marginallikelihood_gplvmvar(X, 𝛃, idx, Z, θ, μ, Λroot, w, b; JITTER = JITTER, η = η, ξ = ξ)
 
     # sort out dimensions
 
@@ -21,9 +21,7 @@ function marginallikelihood_gplvmvar(X, Z, θ, 𝛃, μ, Λroot, w, b; JITTER = 
 
     # contribution of likelihood
     
-    countObs = count(x -> ~ismissing(x), X)
-
-    ℓ += - 0.5*sum(myskip.(𝛃) .* abs2.(myskip.((X.-μ.-b)))) + 0.5*sum(myskip.(log.(𝛃))) - 0.5*countObs*log(2π) - 0.5*sum(𝛃*diag(Σ))
+    @views ℓ += - 0.5*sum(𝛃[idx] .* abs2.(((X[idx].-μ[idx].-b))))- 0.5*sum(𝛃*diag(Σ)) # + 0.5*sum((log.(𝛃))) 
 
     # contribution of entropy 
 
@@ -31,7 +29,7 @@ function marginallikelihood_gplvmvar(X, Z, θ, 𝛃, μ, Λroot, w, b; JITTER = 
     
     ℓ += - 0.5*η*sum(abs2.(Z)) # penalty on latent coordinates - not in latex document
 
-    ℓ += - 0.5*η*sum(abs2.(w)) # penalty on network weights - not in latex document
+    ℓ += - 0.5*ξ*sum(abs2.(w)) # penalty on network weights - not in latex document
 
     return ℓ 
 end
