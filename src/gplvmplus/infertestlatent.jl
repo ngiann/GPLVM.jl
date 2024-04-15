@@ -1,13 +1,13 @@
 function inferlatent(X₊, R; iterations = 1000, repeats=1, seed = 1) 
 
     infertestlatent(X₊; β = R[:β], μ = R[:μ], Σ = R[:Σ], K = R[:K], η = R[:η], Λroot = R[:Λroot], net = R[:net], w = R[:w],
-    α = R[:α], b = R[:b], Z = R[:Z], θ = R[:θ], JITTER = R[:JITTER], rg = R[:rg], iterations = iterations, repeats = repeats, seed = 1)
+    α = R[:α], b = R[:b], Z = R[:Z], θ = R[:θ], JITTER = R[:JITTER], rg = R[:rg], iterations = iterations, repeats = repeats, seed = seed)
 
 end
 
 
 function infertestlatent(X₊; β = β, μ = μ, Σ = Σ, K = K, η = η, Λroot = Λroot, net = net, w = w,
-                             α = α, b = b, Z = Z, θ = θ, JITTER = JITTER, rg = rg, iterations = iterations, repeats = repeats, seed = 1)
+                             α = α, b = b, Z = Z, θ = θ, JITTER = JITTER, rg = rg, iterations = iterations, repeats = repeats, seed = seed)
 
     # sort out dimensions
 
