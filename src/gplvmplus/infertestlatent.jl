@@ -108,13 +108,20 @@ function infertestlatent(X₊; β = β, μ = μ, Σ = Σ, K = K, η = η, Λroot
 
     @printf("Optimising %d number of parameters\n", size(Z,1)+N₊)
 
-    solutions = [optimize(objective, p0(), ConjugateGradient(), opt, autodiff=:forward) for _ in 1:repeats]
+    # solutions = [optimize(objective, p0(), ConjugateGradient(), opt, autodiff=:forward) for _ in 1:repeats]
+###########
+    solutions = map(1:repeats) do repeatindex
+        optf = Optimization.OptimizationFunction((u,_)->objective(u), Optimization.AutoZygote())
+        prob = Optimization.OptimizationProblem(optf, p0())
+        Optimization.solve(prob, ConjugateGradient(), maxiters=iterations, callback = callback)
+    end
 
-    bestindex = argmin([s.minimum for s in solutions])
+###########
+    bestindex = argmin([s.objective for s in solutions])
 
-    @printf("best fmin=%f\n", solutions[bestindex].minimum)
+    @printf("best fmin=%f\n", solutions[bestindex].objective)
 
-    Zopt, νopt, Lroot = unpack(solutions[bestindex].minimizer)
+    Zopt, νopt, Lroot = unpack(solutions[bestindex].u)
    
     return Zopt
 
