@@ -61,7 +61,7 @@ X = loadoriginalspectra();
 Ytr = replace(Matrix(X[1:700,1:2:end]'), Inf => Inf);
 R1 = gplvmvar(Ytr,seed=1,Q=3,iterations=3); 
 
-R1 = gplvmvar(Ytr,seed=1,Q=3,iterations=5000); JLD2.save("boss_gplvmvar.jld2","when",now(), "R",R1, "cmd","""R1 = gplvmvar(Ytr,seed=1,Q=3,iterations=5000)""")
+R1 = gplvmvar(Ytr,seed=1,Q=3,iterations=15_000); JLD2.save("boss_gplvmvar.jld2","when",now(), "R",R1, "cmd","""R1 = gplvmvar(Ytr,seed=1,Q=3,iterations=15_000)""")
 
 
 
@@ -77,7 +77,7 @@ logYtr = log.(Ytr)
 
 R2 = gplvmvar(logYtr,seed=1,Q=3,iterations=3); 
 
-R2 = gplvmvar(logYtr,seed=1,Q=3,iterations=5000); JLD2.save("boss_gplvmvar_log.jld2","when",now(), "R",R2, "cmd","""R2 = gplvmvar(logYtr,seed=1,Q=3,iterations=5000)""")
+R2 = gplvmvar(logYtr,seed=1,Q=3,iterations=15_000); JLD2.save("boss_gplvmvar_log.jld2","when",now(), "R",R2, "cmd","""R2 = gplvmvar(logYtr,seed=1,Q=3,iterations=15_000)""")
 
 
 ----------
@@ -86,7 +86,7 @@ X = loadoriginalspectra();
 Ytr = replace(Matrix(X[1:700,1:2:end]'), Inf => Inf);
 R3 = gplvmplus(Ytr,seed=1,Q=3,iterations=3); 
 
-R3 = gplvmplus(Ytr,seed=1,Q=3,iterations=5000); JLD2.save("boss_gplvmplus.jld2","when",now(), "R",R3, "cmd","""R3 = gplvmplus(Ytr,seed=1,Q=3,iterations=5000)""")
+R3 = gplvmplus(Ytr,seed=1,Q=3,iterations=15_000); JLD2.save("boss_gplvmplus.jld2","when",now(), "R",R3, "cmd","""R3 = gplvmplus(Ytr,seed=1,Q=3,iterations=15_000)""")
 
 
 

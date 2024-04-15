@@ -36,7 +36,7 @@ function infertestlatent(X₊; β = β, μ = μ, Σ = Σ, K = K, η = η, Λroot
 
 
     #--------------------------------------------------
-    function objective(Z₊, ν, Lroot)
+    function lowerbound(Z₊, ν, Lroot)
     #--------------------------------------------------
 
 
@@ -62,7 +62,7 @@ function infertestlatent(X₊; β = β, μ = μ, Σ = Σ, K = K, η = η, Λroot
 
     opt = Optim.Options(iterations = iterations, show_trace = true, show_every = 1)
 
-    objective(p) = -objective(unpack(p)...)
+    objective(p) = -lowerbound(unpack(p)...)
 
 
     #-----------------------------------------------------------------
@@ -72,11 +72,32 @@ function infertestlatent(X₊; β = β, μ = μ, Σ = Σ, K = K, η = η, Λroot
 
     @assert(N₊ == 1)
 
+
+    
+
     function p0()
+
+        local localopt = Optim.Options(iterations = 300, show_trace = true, show_every = 1, g_tol=1e-5)
 
         local luckyindex = ceil(Int, rand(rg)*(size(Z,2))) 
 
-        [Z[:,luckyindex]; randn(rg, D*N₊); randn(rg, N₊)]
+        local fixX = reshape((Z[:,luckyindex]), Q, N₊)
+   
+        function partialunpack(p)
+
+            local Z₊, ν, Lroot = unpack([fixX;p])
+
+            Z₊, ν, Lroot 
+
+        end
+
+        objpartial(p) = -lowerbound(partialunpack(p)...)
+             
+        local partialsol = [randn(rg, D*N₊); randn(rg, N₊)]
+
+        local partialresult = optimize(objpartial, partialsol, ConjugateGradient(), localopt, autodiff=:forward)
+
+        [Z[:,luckyindex]; partialresult.minimizer]
 
     end
 
