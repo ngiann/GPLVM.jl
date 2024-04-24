@@ -2,7 +2,7 @@ function unpack_gplvmplus(p, D, N, net, Q)
 
     nwts = ForwardNeuralNetworks.numweights(net)
     
-    @assert(length(p) == Q*N + 1 + 1 + nwts + N + 2)
+    @assert(length(p) == Q*N + 1 + 1 + nwts + N + 2 + N)
 
     MARK = 0
 
@@ -20,10 +20,12 @@ function unpack_gplvmplus(p, D, N, net, Q)
 
     b = p[MARK+1]; MARK += 1
 
+    c = log1pexp.(p[MARK+1:MARK+N]); MARK += N
+
     @assert(MARK == length(p))
 
     μ = net(w, Z)
     
-    return Z, [1.0;θ], β, μ, Λroot, w, α, b
+    return Z, [1.0;θ], β, μ, Λroot, w, α, b, c
 
 end

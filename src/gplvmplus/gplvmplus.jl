@@ -35,7 +35,7 @@ function gplvmplus(X; iterations = 1, H1 = 10, H2 = H1, seed = 1, Q = 2, JITTER 
     
     # initialise parameters randomly
 
-    p0 = [randn(rg, Q*N)*0.1; randn(rg,1)*0.1; log(1.0); 0.2*randn(rg, nwts); 10*ones(N); 0.1*randn(rg, 2)]
+    p0 = [randn(rg, Q*N)*0.1; randn(rg,1)*0.1; log(1.0); 0.2*randn(rg, nwts); 10*ones(N); 0.1*randn(rg, 2); 0.1*randn(rg, N)]
 
     # define auxiliary unpack function
 
