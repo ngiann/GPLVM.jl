@@ -8,8 +8,10 @@ function unpack_inferlatent_gplvmplus(p; D = D, Q = Q, N₊ = N₊)
 
     local Lroot = Diagonal(p[MARK+1:MARK+N₊]); MARK += N₊
     
+    local c = p[MARK+1]^2; MARK += 1
+
     @assert(MARK == length(p)) # all parameters must be used up
 
-    return Z₊, ν, Lroot
+    return Z₊, ν, Lroot, c
 
 end

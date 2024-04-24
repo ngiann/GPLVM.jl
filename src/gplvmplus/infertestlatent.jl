@@ -36,7 +36,7 @@ function infertestlatent(X₊; β = β, μ = μ, Σ = Σ, K = K, η = η, Λroot
 
 
     #--------------------------------------------------
-    function lowerbound(Z₊, ν, Lroot)
+    function lowerbound(Z₊, ν, Lroot, c)
     #--------------------------------------------------
 
 
@@ -48,7 +48,7 @@ function infertestlatent(X₊; β = β, μ = μ, Σ = Σ, K = K, η = η, Λroot
 
         local E, V = expectation_latent_function_values(;α = α, b = b, μ = ν, Σ = A)
 
-        ℓ += -0.5*β*sum(abs2.((X₊[idx] - E[idx]))) - 1/2 * β * sum(V[idx])
+        ℓ += -0.5*β*sum(abs2.((X₊[idx] - c*E[idx]))) - 1/2 * β * c * c * sum(V[idx])
        
         
         return ℓ
@@ -85,15 +85,15 @@ function infertestlatent(X₊; β = β, μ = μ, Σ = Σ, K = K, η = η, Λroot
    
         function partialunpack(p)
 
-            local Z₊, ν, Lroot = unpack([fixX;p])
+            local Z₊, ν, Lroot, c = unpack([fixX;p])
 
-            Z₊, ν, Lroot 
+            Z₊, ν, Lroot, c 
 
         end
 
         objpartial(p) = -lowerbound(partialunpack(p)...)
              
-        local partialsol = [randn(rg, D*N₊); randn(rg, N₊)]
+        local partialsol = [randn(rg, D*N₊); randn(rg, N₊); 1.0]
 
         local partialresult = optimize(objpartial, partialsol, ConjugateGradient(), localopt, autodiff=:forward)
 
@@ -121,8 +121,8 @@ function infertestlatent(X₊; β = β, μ = μ, Σ = Σ, K = K, η = η, Λroot
 
     @printf("best fmin=%f\n", solutions[bestindex].objective)
 
-    Zopt, νopt, Lroot = unpack(solutions[bestindex].u)
-   
+    Zopt, νopt, Lroot, copt = unpack(solutions[bestindex].u)
+   @show copt
     return Zopt
 
 end
