@@ -37,7 +37,7 @@ function inferlatentgplvmvar(X, R; iterations = 1000, repeats = 10, seed = 1)
 
     # use the same unpacking function like GPLVM₊
 
-    unpack(p) = unpack_inferlatent_gplvmplus(p ; D = D, Q = Q, N₊ = N₊)
+    unpack(p) = unpack_inferlatent_gplvmvar(p ; D = D, Q = Q, N₊ = N₊)
 
     function loss(Z₊, ν, Lroot)
         

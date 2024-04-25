@@ -43,6 +43,7 @@ module GPLVM
     include("gplvmvar/unpack.jl")
     include("gplvmvar/inferlatentgplvmvar.jl")
     include("gplvmvar/inferlatentgplvmvar_photo.jl")
+    include("gplvmvar/unpack_inferlatent_gplvmvar.jl")
     
     export predictgplvmvar, inferlatentgplvmvar, inferlatentgplvmvar_photo
     
