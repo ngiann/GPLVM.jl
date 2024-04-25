@@ -122,7 +122,7 @@ function infertestlatent(X₊; β = β, μ = μ, Σ = Σ, K = K, η = η, Λroot
     @printf("best fmin=%f\n", solutions[bestindex].objective)
 
     Zopt, νopt, Lroot, copt = unpack(solutions[bestindex].u)
-   @show copt
-    return Zopt
+
+    return Zopt, copt
 
 end
