@@ -1,4 +1,4 @@
-function gplvmplus(X; iterations = 1, H1 = 10, H2 = H1, seed = 1, Q = 2, JITTER = 1e-8, η = 1e-2, VERIFY = false)
+function gplvmplus(X; iterations = 1, H1 = 10, H2 = H1, seed = 1, Q = 2, JITTER = 1e-4, η = 1e-2, VERIFY = false)
     
     notinf(x) = ~isinf(x)
 
@@ -54,7 +54,7 @@ function gplvmplus(X; iterations = 1, H1 = 10, H2 = H1, seed = 1, Q = 2, JITTER 
     optf = Optimization.OptimizationFunction((u,_)->objective(u), Optimization.AutoZygote())
     prob = Optimization.OptimizationProblem(optf, p0)
     sol  = Optimization.solve(prob, ConjugateGradient(), maxiters=iterations, callback = callback)
-    Zopt, θopt,βopt, μopt, Λrootopt, wopt, αopt, bopt = upk(sol.u)
+    Zopt, θopt,βopt, μopt, Λrootopt, wopt, αopt, bopt, copt = upk(sol.u)
    
     # opt = Optim.Options(iterations = iterations, show_trace = true, show_every = 10)
     # fg! = getfg!(objective)   
@@ -79,7 +79,7 @@ function gplvmplus(X; iterations = 1, H1 = 10, H2 = H1, seed = 1, Q = 2, JITTER 
         local Σopt  = aux_invert_K⁻¹_plus_Λ(;K = Kopt, Λroot = Λrootopt) + JITTER*I
 
         (μ = μopt, Σ = Σopt, K = Kopt, η = η, Λroot = Λrootopt, net = net, w = wopt,
-         α = αopt, b = bopt, β = βopt, Z = Zopt, θ = θopt, JITTER = JITTER, rg = rg)
+         α = αopt, b = bopt, c = copt, β = βopt, Z = Zopt, θ = θopt, JITTER = JITTER, rg = rg)
     end
 
     
