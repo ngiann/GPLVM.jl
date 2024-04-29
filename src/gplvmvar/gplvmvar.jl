@@ -59,7 +59,7 @@ function gplvmvar(X; iterations = 1, η = 1e-2, ξ = 0.1, seed = 1, Q = 2, JITTE
     @printf("Optimising %d number of parameters\n",length(p0))
     optf = Optimization.OptimizationFunction((u,_)->objective(u), Optimization.AutoZygote())
     prob = Optimization.OptimizationProblem(optf, p0)
-    sol  = Optimization.solve(prob, ConjugateGradient(), maxiters=iterations, callback = callback)
+    sol  = Optimization.solve(prob, LBFGS(), maxiters=iterations, callback = callback)
 
     Zopt, θopt, βopt, μopt, Λrootopt, wopt, bopt = upk(sol.u)
 
