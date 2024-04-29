@@ -67,16 +67,20 @@ function inferlatentgplvmvar(X, R; iterations = 1000, repeats = 10, seed = 1)
      
         init = [Z[:,luckyindex]; randn(rg, D*N₊); randn(rg, N₊)]
 
-        optimize(objective, init, ConjugateGradient(), opt, autodiff=:forward)
+        # optimize(objective, init, ConjugateGradient(), opt, autodiff=:forward)
 
+        optf = Optimization.OptimizationFunction((u,_)->objective(u), Optimization.AutoZygote())
+        prob = Optimization.OptimizationProblem(optf, init)
+        sol  = Optimization.solve(prob, ConjugateGradient(), maxiters=iterations, callback = callback)
+    
     end
 
 
     solutions = [getsolution() for _ in 1:repeats]
 
-    bestindex = argmin([s.minimum for s in solutions])
+    bestindex = argmin([s.objective for s in solutions])
 
     
-    return unpack(solutions[bestindex].minimizer)[1]
+    return unpack(solutions[bestindex].u)[1]
 
 end
