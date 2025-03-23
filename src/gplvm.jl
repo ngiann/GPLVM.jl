@@ -21,17 +21,20 @@ function gplvm(Y; iterations = 1, Q = 2)
 
     initialsol = [randn(rng, Q*N)*0.1; log(1.0); log(1.0); log(1.0)]
 
+    # pre-allocate N×N covariance matrix K
+    K = zeros(N, N)
+
     # setup optimiser options
     opt = Optim.Options(iterations = iterations, show_trace = true, show_every = 1)
 
     # use DifferentiationInterface to get gradients
     backend = AutoMooncake(config = nothing)
     
-    prep = prepare_gradient(negativemarginallikelihood, backend, initialsol, Constant(Y), Constant(zerovector), Constant(D), Constant(Q), Constant(N))   
+    prep = prepare_gradient(negativemarginallikelihood, backend, initialsol, Constant(Y), Constant(zerovector), Cache(K), Constant(D), Constant(Q), Constant(N))   
 
-    gradhelper!(grad, p) = DifferentiationInterface.gradient!(negativemarginallikelihood, grad, prep, backend, p, Constant(Y), Constant(zerovector), Constant(D), Constant(Q), Constant(N))
+    gradhelper!(grad, p) = DifferentiationInterface.gradient!(negativemarginallikelihood, grad, prep, backend, p, Constant(Y), Constant(zerovector), Cache(K), Constant(D), Constant(Q), Constant(N))
 
-    helper(p) = negativemarginallikelihood(p, Y, zerovector, D, Q, N)
+    helper(p) = negativemarginallikelihood(p, Y, zerovector, K, D, Q, N)
 
     # call actual optimisation
     finalsolution = optimize(helper, gradhelper!, initialsol, ConjugateGradient(), opt).minimizer
@@ -48,16 +51,27 @@ end
 
 # Negative marginal likelihood function of GPLVM.
 # We want to minimise this.
-function negativemarginallikelihood(p, Y, zerovector, D, Q, N)
+function negativemarginallikelihood(p, Y, zerovector, K, D, Q, N)
 
     # extract parameters from vector p
     X, θ, σ² = unpack_gplvm(p, Q, N)
 
     # calculate pairwise squared Euclidean distances
-    SqEu = pairwise(SqEuclidean(), X)
+    for n in 1:N
+        for m in 1:N
+           @views K[n, m] = sum((X[:, n] - X[:, m]).^2)
+        end
+    end
 
-    # calculate covariance matrix and add jitter for numerical stability 
-    K = Symmetric(covariance(SqEu, θ)) + 1e-6*I
+    # ovewrite K entires with covariance matrix elements
+    for n in eachindex(K)
+        K[n] = θ[1] * exp(-0.5 * K[n] / θ[2])
+    end
+
+    # add jitter on diagonal
+    for n in 1:N
+        K[n, n] += 1e-6
+    end
 
     # accummulate here log likelihood over D dimensions
     accloglikel = zero(eltype(p))
@@ -77,10 +91,6 @@ function negativemarginallikelihood(p, Y, zerovector, D, Q, N)
     -1.0 * accloglikel
 
 end
-
-
-# Calculates covariance matrix of Gaussian process
-covariance(SqEu, θ) = Symmetric(θ[1] .* exp.(-SqEu .* θ[2]))
 
 
 # Given parameters flattened in p, unpack them into X, θ and σ²
