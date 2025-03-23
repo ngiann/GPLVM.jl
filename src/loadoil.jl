@@ -1,5 +1,5 @@
 """
-    Y, T = loadoil()
+    Y, L = loadoil()
 
 Load the oil data set. There are 1000 data items, each with 12 features. 
 Returns the 12×1000 data matrix `Y` and the 1000 corresponding labels `T`.
