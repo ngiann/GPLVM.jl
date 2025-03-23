@@ -56,7 +56,8 @@ function negativemarginallikelihood(p, Y, zerovector, K, D, Q, N)
     # extract parameters from vector p
     X, θ, σ² = unpack_gplvm(p, Q, N)
 
-    # calculate pairwise squared Euclidean distances
+    # calculate pairwise squared Euclidean distances.
+    # Obviously, a more efficient implementation is possible.
     for n in 1:N
         for m in 1:N
            @views K[n, m] = sum((X[:, n] - X[:, m]).^2)
