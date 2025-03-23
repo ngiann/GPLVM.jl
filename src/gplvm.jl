@@ -64,7 +64,7 @@ function negativemarginallikelihood(p, Y, zerovector, K, D, Q, N)
         end
     end
 
-    # ovewrite K entires with covariance matrix elements
+    # ovewrite K entries with covariance matrix elements
     for n in eachindex(K)
         K[n] = θ[1] * exp(-0.5 * K[n] / θ[2])
     end
