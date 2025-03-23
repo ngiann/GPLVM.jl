@@ -12,7 +12,7 @@ Y, L = loadoil()
 # warmup
 X = gplvm(Y; iterations = 1)
 
-# proper run - check memory consumption
+# proper run - check memory consumption during run
 X = gplvm(Y; iterations =  500)
 
 # plot result
