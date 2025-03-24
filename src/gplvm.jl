@@ -28,6 +28,8 @@ function gplvm(Y; iterations = 1, Q = 2)
     opt = Optim.Options(iterations = iterations, show_trace = true, show_every = 1)
 
     # use DifferentiationInterface to get gradients
+
+    # Comment in lines below to use Mooncake and comment out following block that uses Enzyme
     backend = AutoMooncake(config = nothing)
     
     prep = prepare_gradient(negativemarginallikelihood, backend, initialsol, Constant(Y), Constant(zerovector), Cache(K), Constant(D), Constant(Q), Constant(N))   
@@ -35,6 +37,17 @@ function gplvm(Y; iterations = 1, Q = 2)
     gradhelper!(grad, p) = DifferentiationInterface.gradient!(negativemarginallikelihood, grad, prep, backend, p, Constant(Y), Constant(zerovector), Cache(K), Constant(D), Constant(Q), Constant(N))
 
     helper(p) = negativemarginallikelihood(p, Y, zerovector, K, D, Q, N)
+
+
+    # Comment in lines below to use Enzyme and comment out above block that uses Mooncake
+    # backend = AutoEnzyme()
+  
+    # helper(p) = negativemarginallikelihood(p, Y, zerovector, K, D, Q, N)
+    
+    # prep = prepare_gradient(helper, backend, initialsol)
+    
+    # gradhelper!(grad, p) = DifferentiationInterface.gradient!(helper, grad, prep, backend, p)
+
 
     # call actual optimisation
     finalsolution = optimize(helper, gradhelper!, initialsol, ConjugateGradient(), opt).minimizer

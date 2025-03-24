@@ -5,7 +5,7 @@ module GPLVM
     using Distributions
     using JLD2
     using LinearAlgebra
-    import Mooncake
+    import Mooncake, Enzyme
     using Optim
     using Random
 
